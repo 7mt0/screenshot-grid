@@ -12,3 +12,5 @@ A free, in-browser tool for putting episode screenshots into a clean grid: every
 - Everything runs in your browser. Your screenshots are never uploaded.
 
 Suggestions, edit requests or a problem? Message me on X **[@aka7mto](https://x.com/aka7mto)** or Discord **7mto**.
+
+Made with care for episode screenshot threads.
