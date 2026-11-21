@@ -96,7 +96,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 <body>
 <div class="wrap">
   <div class="top">
-    <h1>Screenshot Grid</h1><span class="ver" title="Version">v21 Nov · no seams</span>
+    <h1>Screenshot Grid</h1><span class="ver" title="Version">v21 Nov · gap 0</span>
     <p>Episode caps in a clean grid, every frame whole and sharp.</p>
     <span class="sp"></span>
     <button class="btn" id="undoB" type="button" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button>
@@ -221,8 +221,8 @@ const view=$('view'),vx=view.getContext('2d'),stage=$('stage');
 const S={rowH:[],auto:true,bars:true,items:[],c:2,r:2,ar:'auto',fill:false,gap:0,gc:'#000000',outer:false,max:4096,fmt:'jpg',q:92,sel:null};
 let uid=0,drag=null,dl=null,V={w:0,h:0,dpr:1,k:1,ox:0,oy:0};
 const R=Math.round,fmtN=n=>R(n).toLocaleString('en-US');
-try{const o=JSON.parse(localStorage.getItem('grid-opts')||'{}');for(const k of ['fill','gap','gc','outer','max','fmt','q','auto','bars'])if(k in o)S[k]=o[k]}catch(e){}
-function persist(){try{const o={};for(const k of ['fill','gap','gc','outer','max','fmt','q','auto','bars'])o[k]=S[k];localStorage.setItem('grid-opts',JSON.stringify(o))}catch(e){}}
+try{const o=JSON.parse(localStorage.getItem('grid-opts')||'{}');for(const k of ['fill','gc','max','fmt','q','auto','bars'])if(k in o)S[k]=o[k]}catch(e){}
+function persist(){try{const o={};for(const k of ['fill','gc','max','fmt','q','auto','bars'])o[k]=S[k];localStorage.setItem('grid-opts',JSON.stringify(o))}catch(e){}}
 let mt;function say(t){const m=$('msg');m.textContent=t;m.classList.add('on');clearTimeout(mt);mt=setTimeout(()=>m.classList.remove('on'),2400)}
 
 /* ---------- loading ---------- */
@@ -464,6 +464,9 @@ $('sortT').onclick=sortByTime;
 $('rev').onclick=()=>{S.items.reverse();render()};
 $('auto').onchange=e=>{S.auto=e.target.checked;persist()};
 
+// let go of a slider once it is set, so arrow keys go back to moving between frames
+document.querySelectorAll('aside input[type=range]').forEach(r=>r.addEventListener('change',()=>r.blur()));
+
 /* ---------- export ---------- */
 function build(png){return new Promise(res=>{const G=geo(+S.max),o=document.createElement('canvas');o.width=G.W;o.height=G.H;
   drawCells(o.getContext('2d'),G,1);o.toBlob(b=>res(b),!png&&S.fmt==='jpg'?'image/jpeg':'image/png',S.q/100)})}
@@ -549,6 +552,7 @@ const selIdx=()=>S.items.findIndex(i=>i.id===S.sel);
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&!$('keys').hidden){keysOpen(false);return}
   const ae=document.activeElement,inField=ae&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName)&&!['range','checkbox','color'].includes(ae.type);
+  if(ae&&ae.type==='range'&&e.key.startsWith('Arrow'))return; // arrows move the slider, not the frames
   const m=e.ctrlKey||e.metaKey,k=e.key.toLowerCase();
   if(m){
     if(k==='z'){e.preventDefault();e.shiftKey?redo():undo()}
