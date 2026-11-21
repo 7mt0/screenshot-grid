@@ -84,6 +84,9 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 .ver{font-size:12px;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:2px 8px;white-space:nowrap}
 .contact{max-width:1400px;margin:0 auto;padding:0 max(2vw,12px) 20px;font-size:13px;color:var(--mute)}
 .contact a{color:var(--ink);font-weight:600}.contact b{color:var(--ink)}
+.stageContact{position:absolute;right:14px;bottom:14px;margin:0;max-width:46%;text-align:right;font-size:12px;line-height:1.4;color:rgba(255,255,255,.55);pointer-events:auto}
+.stageContact a,.stageContact b{color:rgba(255,255,255,.85);font-weight:600}
+@media(max-width:700px){.stageContact{display:none}}
 [hidden]{display:none!important}
 @media(max-width:1420px){.top p{display:none}}
 @media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.stage{height:58vh;min-height:320px}aside{max-height:none}}
@@ -93,7 +96,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 <body>
 <div class="wrap">
   <div class="top">
-    <h1>Screenshot Grid</h1><span class="ver" title="Version">v21 Nov · black-bar removal</span>
+    <h1>Screenshot Grid</h1><span class="ver" title="Version">v21 Nov · subtitle strips</span>
     <p>Episode caps in a clean grid, every frame whole and sharp.</p>
     <span class="sp"></span>
     <button class="btn" id="undoB" type="button" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button>
@@ -109,7 +112,8 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
       <canvas id="view" aria-label="Grid preview"></canvas>
       <div id="empty"><div>
         <h2>Add your screenshots</h2>
-        <p>Pick 2, 4, 6, 8 or more caps, or drop them here, or paste with Ctrl+V. The tool suggests every grid that fits them.</p>
+        <p>Pick as many caps as you like, drop them here, or paste with Ctrl+V. The tool suggests every grid that fits them.</p>
+        <p style="font-size:13px;margin:-4px 0 14px">Suggestions or problems? X <a href="https://x.com/aka7mto" target="_blank" rel="noopener">@aka7mto</a> · Discord <b>7mto</b></p>
         <button class="btn pri" id="add2" type="button">Add screenshots</button>
       </div></div>
       <div class="info" id="info" hidden>
@@ -118,6 +122,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
         <span id="iSizeW">File <b id="iSize">…</b></span>
       </div>
       <p id="msg" role="status"></p>
+      <p class="stageContact">Have a suggestion or found a problem? Contact me on X <a href="https://x.com/aka7mto" target="_blank" rel="noopener">@aka7mto</a> or Discord <b>7mto</b></p>
     </div>
 
     <aside>
@@ -130,6 +135,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
             <option value="1.7778">16:9</option><option value="2.3333">21:9 (cinema)</option>
             <option value="1.3333">4:3</option><option value="1">1:1</option><option value="0.5625">9:16</option>
           </select></label>
+        <button class="btn small" id="subStack" type="button" title="First screenshot full, the rest as thin subtitle strips under it">Subtitle stack <span style="font-weight:400;color:var(--mute)">(1 full + subtitle strips)</span></button>
         <label class="chk"><input type="checkbox" id="bars"> Remove black bars around screenshots</label>
         <label class="chk"><input type="checkbox" id="fill"> Fill frames (crop edges if shapes differ)</label>
       </section>
@@ -137,8 +143,13 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
       <section class="card" id="frameCard" hidden>
         <h3>Selected frame <small id="fName"></small></h3>
         <label class="f"><span>Zoom <b id="zO">100%</b></span><input type="range" id="z" min="100" max="500" value="100"></label>
+        <label class="f"><span>Height of this row <b id="fhO">100%</b></span><input type="range" id="fh" min="6" max="100" value="100"></label>
+        <div class="row">
+          <button class="btn small grow" id="fhSub" type="button">Subtitle only</button>
+          <button class="btn small grow" id="fhFull" type="button">Full height</button>
+        </div>
         <button class="btn small" id="repl" type="button">Replace image… <span style="font-weight:400;color:var(--mute)">(keeps this spot)</span></button>
-        <p class="hint">Drag inside a zoomed frame to choose what shows. Drag a frame onto another to swap them. Drop a screenshot file on a frame to replace it. Scroll on a frame to zoom it.</p>
+        <p class="hint">Drag the bottom edge of a frame to make its row shorter or taller. Drag inside a shortened or zoomed frame to choose what shows. Drag a frame onto another to swap them. Drop a screenshot file on a frame to replace it. Scroll on a frame to zoom it.</p>
         <div class="row">
           <button class="btn small grow" id="zReset" type="button">Reset frame</button>
           <button class="btn small grow" id="zAll" type="button">Same zoom for all</button>
@@ -207,7 +218,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 {
 const $=id=>document.getElementById(id);
 const view=$('view'),vx=view.getContext('2d'),stage=$('stage');
-const S={auto:true,bars:true,items:[],c:2,r:2,ar:'auto',fill:false,gap:0,gc:'#000000',outer:false,max:4096,fmt:'jpg',q:92,sel:null};
+const S={rowH:[],auto:true,bars:true,items:[],c:2,r:2,ar:'auto',fill:false,gap:0,gc:'#000000',outer:false,max:4096,fmt:'jpg',q:92,sel:null};
 let uid=0,drag=null,dl=null,V={w:0,h:0,dpr:1,k:1,ox:0,oy:0};
 const R=Math.round,fmtN=n=>R(n).toLocaleString('en-US');
 try{const o=JSON.parse(localStorage.getItem('grid-opts')||'{}');for(const k of ['fill','gap','gc','outer','max','fmt','q','auto','bars'])if(k in o)S[k]=o[k]}catch(e){}
@@ -267,34 +278,37 @@ function cellAR(){
   const a=S.items.map(i=>EW(i)/EH(i)).sort((x,y)=>x-y);return a.length?a[a.length>>1]:16/9}
 function options(){
   const n=S.items.length,o=[];if(!n)return o;
-  for(let c=1;c<=Math.min(n,8);c++){const r=Math.ceil(n/c);if(r>10)continue;const empty=c*r-n;if(empty>=c||empty>Math.floor(c/2))continue;
+  for(let c=1;c<=Math.min(n,8);c++){const r=Math.ceil(n/c);if(r>(c===1?20:10))continue;const empty=c*r-n;if(empty>=c||empty>Math.floor(c/2))continue;
     const ar=(c*cellAR())/r;o.push({c,r,empty,ar})}
   return o.sort((a,b)=>(a.empty>0)-(b.empty>0)||a.c-b.c);
 }
 function pickDefault(){
   const o=options().filter(x=>!x.empty);const list=o.length?o:options();
   let best=list[0];for(const x of list)if(Math.abs(Math.log(x.ar/1.4))<Math.abs(Math.log(best.ar/1.4)))best=x;
-  if(best){S.c=best.c;S.r=best.r}
+  if(best){if(S.c!==best.c||S.r!==best.r)S.rowH=[];S.c=best.c;S.r=best.r}
 }
 
 /* ---------- geometry (output pixels) ---------- */
 function geo(maxSide){
   const n=S.items.length,c=S.c,r=S.r,ar=cellAR(),g=S.gap,p=S.outer?S.gap:0;
+  const RH=i=>Math.max(.06,Math.min(1,S.rowH[i]??1));let sumR=0;for(let i=0;i<r;i++)sumR+=RH(i);
   let cw=Math.max(...S.items.map(i=>Math.min(EW(i),EH(i)*ar)));let ch=cw/ar;
   if(maxSide>0){
-    const kw=(maxSide-(c-1)*g-2*p)/(c*cw),kh=(maxSide-(r-1)*g-2*p)/(r*ch);
+    const kw=(maxSide-(c-1)*g-2*p)/(c*cw),kh=(maxSide-(r-1)*g-2*p)/(sumR*ch);
     const k=Math.min(1,kw,kh);cw*=k;ch*=k;
   }
   cw=Math.max(8,Math.floor(cw));ch=Math.max(8,Math.floor(cw/ar));
-  const W=c*cw+(c-1)*g+2*p,H=r*ch+(r-1)*g+2*p,cells=[];
+  const rowY=[],rowHpx=[];let y=p;for(let i=0;i<r;i++){rowY.push(y);rowHpx.push(Math.max(4,Math.round(ch*RH(i))));y+=rowHpx[i]+g}
+  const W=c*cw+(c-1)*g+2*p,H=y-g+p,cells=[];
   for(let i=0;i<n;i++){const row=Math.floor(i/c),col=i%c,inRow=row===r-1?n-row*c:c;
-    const shift=(c-inRow)*(cw+g)/2;cells.push({it:S.items[i],x:p+shift+col*(cw+g),y:p+row*(ch+g),w:cw,h:ch})}
-  return{W,H,cw,ch,cells};
+    const shift=(c-inRow)*(cw+g)/2;cells.push({it:S.items[i],row,x:p+shift+col*(cw+g),y:rowY[row],w:cw,h:rowHpx[row],strip:RH(row)<.98})}
+  return{W,H,cw,ch,cells,rowY,rowHpx};
 }
-function place(it,w,h){
+function place(it,w,h,strip){
   // shapes within ~3% (rounding, 1920×1080 vs 1920×1088…) fill the cell so no thin bars appear
   const iw=EW(it),ih=EH(it),near=Math.abs(Math.log((w/h)/(iw/ih)))<0.03;
-  const base=(S.fill||near)?Math.max(w/iw,h/ih):Math.min(w/iw,h/ih),s=base*it.zoom,dw=iw*s,dh=ih*s;
+  // a shortened row (strip) always keeps the full width and crops top/bottom
+  const base=strip?Math.max(w/iw,h/ih):(S.fill||near)?Math.max(w/iw,h/ih):Math.min(w/iw,h/ih),s=base*it.zoom,dw=iw*s,dh=ih*s;
   const mx=Math.max(0,(dw-w)/2),my=Math.max(0,(dh-h)/2);
   it.ox=Math.max(-1,Math.min(1,it.ox));it.oy=Math.max(-1,Math.min(1,it.oy));
   return{dw,dh,dx:(w-dw)/2+it.ox*mx,dy:(h-dh)/2+it.oy*my,mx,my};
@@ -302,7 +316,7 @@ function place(it,w,h){
 function drawCells(ctx,G,k){
   ctx.fillStyle=S.gc;ctx.fillRect(0,0,G.W*k,G.H*k);
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-  for(const c of G.cells){const x=R(c.x*k),y=R(c.y*k),w=R((c.x+c.w)*k)-x,h=R((c.y+c.h)*k)-y,P=place(c.it,w,h); // whole pixels: neighbours share edges, no seams
+  for(const c of G.cells){const x=R(c.x*k),y=R(c.y*k),w=R((c.x+c.w)*k)-x,h=R((c.y+c.h)*k)-y,P=place(c.it,w,h,c.strip); // whole pixels: neighbours share edges, no seams
     ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();const Q=SRC(c.it);ctx.drawImage(c.it.im,Q.sx,Q.sy,Q.sw,Q.sh,x+P.dx,y+P.dy,P.dw,P.dh);ctx.restore()}
 }
 
@@ -325,6 +339,9 @@ function draw(){
       vx.fillStyle='rgba(0,0,0,.7)';vx.fillRect(x+6,y+6,tw,20);vx.fillStyle='#fff';vx.textBaseline='middle';vx.fillText(t,x+12,y+16.5)}
   }
   vx.restore();
+  if(drag&&drag.mode==='row'){const G=V.G,y=V.oy+(G.rowY[drag.row]+G.rowHpx[drag.row])*V.k;vx.save();vx.strokeStyle='#e3392b';vx.lineWidth=2;vx.beginPath();vx.moveTo(V.ox,y);vx.lineTo(V.ox+G.W*V.k,y);vx.stroke();
+    const t=`Row ${drag.row+1}: ${Math.round((S.rowH[drag.row]??1)*100)}% · ${G.rowHpx[drag.row]} px`;vx.font='600 12px "IBM Plex Sans",system-ui';const tw=vx.measureText(t).width+16;
+    vx.fillStyle='rgba(0,0,0,.85)';vx.fillRect(V.ox+G.W*V.k/2-tw/2,y+6,tw,22);vx.fillStyle='#fff';vx.textBaseline='middle';vx.fillText(t,V.ox+G.W*V.k/2-tw/2+8,y+17.5);vx.restore()}
   if(drag&&drag.mode==='swap'){const it=drag.it,tw=150,th=tw*it.ih/it.iw;vx.save();vx.globalAlpha=.85;vx.shadowColor='rgba(0,0,0,.6)';vx.shadowBlur=16;
     vx.drawImage(it.im,drag.px-tw/2,drag.py-th/2,tw,th);vx.globalAlpha=1;vx.shadowColor='transparent';vx.lineWidth=2;vx.strokeStyle='#e3392b';vx.strokeRect(drag.px-tw/2,drag.py-th/2,tw,th);vx.restore()}
   $('iDim').textContent=`${fmtN(G.W)} × ${fmtN(G.H)} px`;$('iCell').textContent=`${fmtN(G.cw)} × ${fmtN(G.ch)}`;
@@ -333,15 +350,24 @@ function cellAt(e){const r=view.getBoundingClientRect(),x=(e.clientX-r.left-V.ox
   return V.G&&V.G.cells.find(c=>x>=c.x&&x<c.x+c.w&&y>=c.y&&y<c.y+c.h)||null}
 
 /* ---------- pointer on preview ---------- */
+function rowEdgeAt(e){if(!V.G)return null;const r=view.getBoundingClientRect(),y=e.clientY-r.top,x=e.clientX-r.left;
+  const G=V.G;if(x<V.ox||x>V.ox+G.W*V.k)return null;
+  for(let i=0;i<G.rowY.length;i++){const yy=V.oy+(G.rowY[i]+G.rowHpx[i])*V.k;if(Math.abs(y-yy)<=6)return i}return null}
 view.addEventListener('pointerdown',e=>{
+  const re=rowEdgeAt(e);
+  if(re!=null){view.setPointerCapture(e.pointerId);const G=V.G,rowItems=G.cells.filter(c=>c.row===re).map(c=>c.it);
+    if((S.rowH[re]??1)>=.98)for(const it of rowItems)if(it.oy===0)it.oy=-1; // new strip: start at the bottom, where subtitles are
+    drag={mode:'row',row:re,top:V.oy+G.rowY[re]*V.k,full:G.ch*V.k,items:rowItems};if(rowItems[0])S.sel=rowItems[0].id;renderPanel();draw();return}
   const c=cellAt(e);if(!c)return;view.setPointerCapture(e.pointerId);S.sel=c.it.id;
-  const P=place(c.it,c.w,c.h),mx=P.mx*V.k,my=P.my*V.k;
+  const P=place(c.it,c.w,c.h,c.strip),mx=P.mx*V.k,my=P.my*V.k;
   // one gesture: drag onto another frame = swap; drag inside a zoomed frame = pan
   drag={it:c.it,sx:e.clientX,sy:e.clientY,ox:c.it.ox,oy:c.it.oy,mx,my,canPan:mx>2||my>2,over:null,mode:null,px:0,py:0};
   renderPanel();draw();
 });
 view.addEventListener('pointermove',e=>{
-  if(!drag){view.style.cursor=cellAt(e)?'grab':'default';return}
+  if(!drag){view.style.cursor=rowEdgeAt(e)!=null?'ns-resize':cellAt(e)?'grab':'default';return}
+  if(drag.mode==='row'){const r=view.getBoundingClientRect();let f=(e.clientY-r.top-drag.top)/drag.full;f=Math.max(.06,Math.min(1,f));if(f>.97)f=1;
+    S.rowH[drag.row]=Math.round(f*1000)/1000;view.style.cursor='ns-resize';drag.f=f;draw();renderPanel();return}
   const d=drag,r=view.getBoundingClientRect();d.px=e.clientX-r.left;d.py=e.clientY-r.top;
   const c=cellAt(e),moved=Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>4;
   if(c&&c.it!==d.it){d.mode='swap';d.over=c.it;d.it.ox=d.ox;d.it.oy=d.oy}
@@ -352,6 +378,7 @@ view.addEventListener('pointermove',e=>{
   view.style.cursor='grabbing';draw();
 });
 function up(){if(!drag)return;const d=drag;drag=null;view.style.cursor='default';
+  if(d.mode==='row'){render();return}
   if(d.over&&d.over!==d.it){const a=S.items.indexOf(d.it),b=S.items.indexOf(d.over);[S.items[a],S.items[b]]=[S.items[b],S.items[a]];render();return}
   if(d.mode==='pan'){sizeSoon();commit()}draw()}
 view.addEventListener('pointerup',up);view.addEventListener('pointercancel',up);
@@ -379,13 +406,14 @@ function renderPanel(){
     <button class="ib" data-a="r" ${i===n-1?'disabled':''} aria-label="Move later">→</button>
     <button class="ib x" data-a="x" aria-label="Remove">×</button></div></li>`).join('');
   const it=S.items.find(i=>i.id===S.sel);$('frameCard').hidden=!it;
-  if(it){$('fName').textContent='#'+(S.items.indexOf(it)+1)+(it.t!=null?' · at '+fmtT(it.t):'')+' · '+fmtN(it.iw)+' × '+fmtN(it.ih);$('z').value=R(it.zoom*100);$('zO').textContent=R(it.zoom*100)+'%'}
+  if(it){const ri=Math.floor(S.items.indexOf(it)/S.c),rh=Math.round((S.rowH[ri]??1)*100);if(document.activeElement!==$('fh'))$('fh').value=rh;$('fhO').textContent=rh+'%';
+    $('fName').textContent='#'+(S.items.indexOf(it)+1)+(it.t!=null?' · at '+fmtT(it.t):'')+' · '+fmtN(it.iw)+' × '+fmtN(it.ih);$('z').value=R(it.zoom*100);$('zO').textContent=R(it.zoom*100)+'%'}
   $('auto').checked=S.auto;
   $('ar').value=S.ar;$('bars').checked=S.bars;$('fill').checked=S.fill;$('gap').value=S.gap;$('gO').textContent=S.gap+' px';$('gc').value=S.gc;$('outer').checked=S.outer;
   $('max').value=String(S.max);$('fmt').value=S.fmt;$('q').value=S.q;$('qO').textContent=S.q;$('qW').hidden=S.fmt!=='jpg';
 }
 function render(){if(S.items.length&&!options().some(o=>o.c===S.c&&o.r===S.r))pickDefault();renderPanel();draw();sizeSoon();$('copyB').disabled=!S.items.length;commit()}
-$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;S.c=+b.dataset.c;S.r=+b.dataset.r;render()});
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;S.c=+b.dataset.c;S.r=+b.dataset.r;S.rowH=[];render()});
 $('strip').addEventListener('click',e=>{const li=e.target.closest('li');if(!li)return;const id=+li.dataset.id,i=S.items.findIndex(x=>x.id===id),b=e.target.closest('button');
   if(b){const a=b.dataset.a;if(a==='x'){S.items.splice(i,1);if(S.sel===id)S.sel=(S.items[Math.min(i,S.items.length-1)]||{}).id||null;pickDefault()}
     else{const j=a==='l'?i-1:i+1;[S.items[i],S.items[j]]=[S.items[j],S.items[i]]}}
@@ -398,6 +426,18 @@ const opt=(id,key,conv,ev='change')=>$(id).addEventListener(ev,e=>{S[key]=conv(e
 opt('ar','ar',t=>t.value);opt('bars','bars',t=>t.checked);opt('fill','fill',t=>t.checked);opt('gap','gap',t=>+t.value,'input');opt('gc','gc',t=>t.value,'input');
 opt('outer','outer',t=>t.checked);opt('max','max',t=>+t.value);opt('fmt','fmt',t=>t.value);opt('q','q',t=>+t.value);
 $('q').addEventListener('input',e=>{$('qO').textContent=e.target.value});
+
+/* ---------- row heights ---------- */
+const selRow=()=>{const i=S.items.findIndex(x=>x.id===S.sel);return i<0?null:Math.floor(i/S.c)};
+const rowItems=r=>S.items.filter((_,i)=>Math.floor(i/S.c)===r);
+$('fh').addEventListener('input',e=>{const r=selRow();if(r==null)return;if((S.rowH[r]??1)>=.98)for(const it of rowItems(r))if(it.oy===0)it.oy=-1;
+  S.rowH[r]=e.target.value/100;$('fhO').textContent=e.target.value+'%';draw()});
+$('fh').addEventListener('change',()=>render());
+$('fhSub').onclick=()=>{const r=selRow();if(r==null)return;S.rowH[r]=.2;for(const it of rowItems(r)){it.oy=-1;it.zoom=1}render()};
+$('fhFull').onclick=()=>{const r=selRow();if(r==null)return;S.rowH[r]=1;render()};
+$('subStack').onclick=()=>{const n=S.items.length;if(n<2)return say('Add at least 2 screenshots');
+  S.c=1;S.r=n;S.rowH=Array.from({length:n},(_,i)=>i?.2:1);S.items.forEach((it,i)=>{if(i){it.oy=-1;it.zoom=1}});
+  render();say('Drag the bottom edge of any strip to fit its subtitle, or drag inside it to move what shows')};
 
 /* ---------- time order ---------- */
 function sortByTime(){
@@ -468,13 +508,13 @@ $('keys').addEventListener('click',e=>{if(e.target.id==='keys')keysOpen(false)})
 
 /* ---------- history ---------- */
 let hist=[],hi=-1,restoring=false;
-const SK=['c','r','ar','fill','gap','gc','outer','bars'];
-function snapG(){const o={items:S.items.map(i=>({...i})),sel:S.sel};for(const k of SK)o[k]=S[k];return o}
+const SK=['c','r','ar','fill','gap','gc','outer','bars','rowH'];
+function snapG(){const o={items:S.items.map(i=>({...i})),sel:S.sel};for(const k of SK)o[k]=Array.isArray(S[k])?S[k].slice():S[k];return o}
 function keyOf(o){return JSON.stringify([o.items.map(i=>[i.id,+i.zoom.toFixed(3),+i.ox.toFixed(3),+i.oy.toFixed(3)]),SK.map(k=>o[k])])}
 function commit(){if(restoring)return;const o=snapG(),k=keyOf(o);if(hi>=0&&keyOf(hist[hi])===k){hist[hi].sel=S.sel;return}
   hist=hist.slice(0,hi+1);hist.push(o);if(hist.length>60)hist.shift();hi=hist.length-1;ub()}
 function ub(){$('undoB').disabled=hi<=0;$('redoB').disabled=hi>=hist.length-1}
-function restoreG(o){restoring=true;S.items=o.items.map(i=>({...i}));for(const k of SK)S[k]=o[k];S.sel=S.items.some(i=>i.id===o.sel)?o.sel:((S.items[0]||{}).id||null);persist();render();restoring=false}
+function restoreG(o){restoring=true;S.items=o.items.map(i=>({...i}));for(const k of SK)S[k]=Array.isArray(o[k])?o[k].slice():o[k];S.sel=S.items.some(i=>i.id===o.sel)?o.sel:((S.items[0]||{}).id||null);persist();render();restoring=false}
 function undo(){if(hi>0){hi--;restoreG(hist[hi]);ub();say('Undo')}}
 function redo(){if(hi<hist.length-1){hi++;restoreG(hist[hi]);ub();say('Redo')}}
 $('undoB').onclick=undo;$('redoB').onclick=redo;
