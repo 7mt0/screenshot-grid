@@ -96,7 +96,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 <body>
 <div class="wrap">
   <div class="top">
-    <h1>Screenshot Grid</h1><span class="ver" title="Version">v21 Nov · swap handle</span>
+    <h1>Screenshot Grid</h1><span class="ver" title="Version">v21 Nov · no seams</span>
     <p>Episode caps in a clean grid, every frame whole and sharp.</p>
     <span class="sp"></span>
     <button class="btn" id="undoB" type="button" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button>
@@ -262,14 +262,21 @@ async function addFiles(list){
 /* ---------- layouts ---------- */
 /* black bars baked into a screenshot (pillarbox / letterbox): find the picture inside them */
 function findBars(im){
-  try{const W=im.naturalWidth,H=im.naturalHeight,k=Math.min(1,360/Math.max(W,H)),w=Math.max(8,Math.round(W*k)),h=Math.max(8,Math.round(H*k));
+  // full-resolution edge scan: thin dark borders baked into many encodes (a few px) are always trimmed;
+  // wide black bars are trimmed only when they sit on both sides at about the same size (not a dark scene)
+  try{const W=im.naturalWidth,H=im.naturalHeight,k=W*H>16e6?.5:1,w=Math.round(W*k),h=Math.round(H*k);
     const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0,w,h);
-    const d=g.getImageData(0,0,w,h).data,dark=(x,y)=>{const i=(y*w+x)*4;return Math.max(d[i],d[i+1],d[i+2])<24};
-    const colDark=x=>{let n=0;for(let y=0;y<h;y++)if(dark(x,y))n++;return n/h>.985},rowDark=y=>{let n=0;for(let x=0;x<w;x++)if(dark(x,y))n++;return n/w>.985};
+    const d=g.getImageData(0,0,w,h).data,dark=(x,y)=>{const i=(y*w+x)*4;return Math.max(d[i],d[i+1],d[i+2])<40};
+    const sy=Math.max(1,Math.floor(h/360)),sx=Math.max(1,Math.floor(w/360));
+    const colDark=x=>{let n=0,t=0;for(let y=0;y<h;y+=sy){t++;if(dark(x,y))n++}return n/t>.96};
+    const rowDark=y=>{let n=0,t=0;for(let x=0;x<w;x+=sx){t++;if(dark(x,y))n++}return n/t>.96};
     let l=0,r=0,t=0,b=0;while(l<w/2&&colDark(l))l++;while(r<w/2&&colDark(w-1-r))r++;while(t<h/2&&rowDark(t))t++;while(b<h/2&&rowDark(h-1-b))b++;
-    const sym=(a,z,n)=>a>n*.02&&z>n*.02&&Math.abs(a-z)<n*.03; // bars on both sides, about equal: not just a dark scene
-    let x0=0,x1=w,y0=0,y1=h;if(sym(l,r,w)){x0=l+1;x1=w-r-1}if(sym(t,b,h)){y0=t+1;y1=h-b-1}
-    if(x0===0&&y0===0)return null;if((x1-x0)<w*.4||(y1-y0)<h*.4)return null;
+    const thin=(n,dim)=>n>0&&n<=dim*.015,big=(a,z,dim)=>a>dim*.015&&z>dim*.015&&Math.abs(a-z)<dim*.03;
+    let x0=0,x1=w,y0=0,y1=h;
+    const m=2; // step 2px further in, so scaling never blends a dark edge pixel back in
+    if(big(l,r,w)){x0=l+m;x1=w-r-m}else{if(thin(l,w))x0=l+m;if(thin(r,w))x1=w-r-m}
+    if(big(t,b,h)){y0=t+m;y1=h-b-m}else{if(thin(t,h))y0=t+m;if(thin(b,h))y1=h-b-m}
+    if(x0===0&&y0===0&&x1===w&&y1===h)return null;if((x1-x0)<w*.4||(y1-y0)<h*.4)return null;
     return{sx:Math.round(x0/k),sy:Math.round(y0/k),sw:Math.round((x1-x0)/k),sh:Math.round((y1-y0)/k)}}catch(e){return null}}
 const SRC=it=>(S.bars&&it.crop)?it.crop:{sx:0,sy:0,sw:it.iw,sh:it.ih};
 const EW=it=>SRC(it).sw,EH=it=>SRC(it).sh;
@@ -329,7 +336,8 @@ function draw(){
   const G=geo(+S.max),pad=24,bottom=56;V.G=G;
   V.k=Math.min((V.w-2*pad)/G.W,(V.h-pad-bottom)/G.H);V.ox=(V.w-G.W*V.k)/2;V.oy=pad+(V.h-pad-bottom-G.H*V.k)/2;
   vx.save();vx.translate(V.ox,V.oy);vx.shadowColor='rgba(0,0,0,.5)';vx.shadowBlur=30;vx.fillStyle=S.gc;vx.fillRect(0,0,G.W*V.k,G.H*V.k);vx.shadowColor='transparent';
-  drawCells(vx,G,V.k);
+  // draw frames in real screen pixels (Windows display scaling like 125% otherwise leaves 1px seams between frames)
+  vx.save();vx.setTransform(1,0,0,1,Math.round(V.ox*V.dpr),Math.round(V.oy*V.dpr));drawCells(vx,G,V.k*V.dpr);vx.restore();
   for(const c of G.cells){const x=c.x*V.k,y=c.y*V.k,w=c.w*V.k,h=c.h*V.k;
     if(c.it.id===S.sel){vx.lineWidth=2;vx.strokeStyle='#e3392b';vx.strokeRect(x+1,y+1,w-2,h-2)}
     if(V.dropOn===c.it){vx.fillStyle='rgba(227,57,43,.35)';vx.fillRect(x,y,w,h);vx.font='600 15px "IBM Plex Sans",system-ui';const t='Drop to replace this frame',tw=vx.measureText(t).width+20;
