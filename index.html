@@ -96,7 +96,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 <body>
 <div class="wrap">
   <div class="top">
-    <h1>Screenshot Grid</h1><span class="ver" title="Version">v21 Nov · subtitle strips</span>
+    <h1>Screenshot Grid</h1><span class="ver" title="Version">v21 Nov · swap handle</span>
     <p>Episode caps in a clean grid, every frame whole and sharp.</p>
     <span class="sp"></span>
     <button class="btn" id="undoB" type="button" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button>
@@ -149,7 +149,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
           <button class="btn small grow" id="fhFull" type="button">Full height</button>
         </div>
         <button class="btn small" id="repl" type="button">Replace image… <span style="font-weight:400;color:var(--mute)">(keeps this spot)</span></button>
-        <p class="hint">Drag the bottom edge of a frame to make its row shorter or taller. Drag inside a shortened or zoomed frame to choose what shows. Drag a frame onto another to swap them. Drop a screenshot file on a frame to replace it. Scroll on a frame to zoom it.</p>
+        <p class="hint">Drag the bottom edge of a frame to make its row shorter or taller. Drag inside a strip or zoomed frame (or scroll on a strip) to choose what shows. To swap two frames, drag one by its ⠿ handle in the corner onto the other. Drop a screenshot file on a frame to replace it. Scroll on a full frame, or Ctrl+scroll on a strip, to zoom it.</p>
         <div class="row">
           <button class="btn small grow" id="zReset" type="button">Reset frame</button>
           <button class="btn small grow" id="zAll" type="button">Same zoom for all</button>
@@ -339,6 +339,8 @@ function draw(){
       vx.fillStyle='rgba(0,0,0,.7)';vx.fillRect(x+6,y+6,tw,20);vx.fillStyle='#fff';vx.textBaseline='middle';vx.fillText(t,x+12,y+16.5)}
   }
   vx.restore();
+  if(V.hov&&!drag){const c=V.G.cells.find(x=>x.it===V.hov);if(c){const g=gripRect(c);vx.save();vx.fillStyle='rgba(0,0,0,.7)';vx.beginPath();vx.roundRect?vx.roundRect(g.x,g.y,g.w,g.h,6):vx.rect(g.x,g.y,g.w,g.h);vx.fill();
+    vx.fillStyle='#fff';for(let i=0;i<3;i++)for(let j=0;j<2;j++){vx.beginPath();vx.arc(g.x+9+j*8,g.y+7+i*6,1.7,0,7);vx.fill()}vx.restore()}}
   if(drag&&drag.mode==='row'){const G=V.G,y=V.oy+(G.rowY[drag.row]+G.rowHpx[drag.row])*V.k;vx.save();vx.strokeStyle='#e3392b';vx.lineWidth=2;vx.beginPath();vx.moveTo(V.ox,y);vx.lineTo(V.ox+G.W*V.k,y);vx.stroke();
     const t=`Row ${drag.row+1}: ${Math.round((S.rowH[drag.row]??1)*100)}% · ${G.rowHpx[drag.row]} px`;vx.font='600 12px "IBM Plex Sans",system-ui';const tw=vx.measureText(t).width+16;
     vx.fillStyle='rgba(0,0,0,.85)';vx.fillRect(V.ox+G.W*V.k/2-tw/2,y+6,tw,22);vx.fillStyle='#fff';vx.textBaseline='middle';vx.fillText(t,V.ox+G.W*V.k/2-tw/2+8,y+17.5);vx.restore()}
@@ -359,30 +361,36 @@ view.addEventListener('pointerdown',e=>{
     if((S.rowH[re]??1)>=.98)for(const it of rowItems)if(it.oy===0)it.oy=-1; // new strip: start at the bottom, where subtitles are
     drag={mode:'row',row:re,top:V.oy+G.rowY[re]*V.k,full:G.ch*V.k,items:rowItems};if(rowItems[0])S.sel=rowItems[0].id;renderPanel();draw();return}
   const c=cellAt(e);if(!c)return;view.setPointerCapture(e.pointerId);S.sel=c.it.id;
-  const P=place(c.it,c.w,c.h,c.strip),mx=P.mx*V.k,my=P.my*V.k;
-  // one gesture: drag onto another frame = swap; drag inside a zoomed frame = pan
-  drag={it:c.it,sx:e.clientX,sy:e.clientY,ox:c.it.ox,oy:c.it.oy,mx,my,canPan:mx>2||my>2,over:null,mode:null,px:0,py:0};
+  const P=place(c.it,c.w,c.h,c.strip),mx=P.mx*V.k,my=P.my*V.k,canPan=mx>2||my>2;
+  // the grip (or Shift, or a frame you can't move inside) = swap; anywhere else in a strip/zoomed frame = pan only
+  const swap=onGrip(c,e)||e.shiftKey||!canPan;
+  drag={it:c.it,sx:e.clientX,sy:e.clientY,ox:c.it.ox,oy:c.it.oy,mx,my,swap,over:null,mode:null,px:0,py:0};
   renderPanel();draw();
 });
+function gripRect(c){const x=V.ox+c.x*V.k,y=V.oy+c.y*V.k,h=c.h*V.k,sz=26;return{x:x+6,y:h<70?y+(h-sz)/2:y+8,w:sz,h:sz}}
+function onGrip(c,e){const r=view.getBoundingClientRect(),g=gripRect(c),x=e.clientX-r.left,y=e.clientY-r.top;return x>=g.x&&x<=g.x+g.w&&y>=g.y&&y<=g.y+g.h}
 view.addEventListener('pointermove',e=>{
-  if(!drag){view.style.cursor=rowEdgeAt(e)!=null?'ns-resize':cellAt(e)?'grab':'default';return}
+  if(!drag){const re=rowEdgeAt(e),c=re==null?cellAt(e):null;
+    if((c&&c.it)!==V.hov){V.hov=c?c.it:null;draw()}
+    view.style.cursor=re!=null?'ns-resize':!c?'default':onGrip(c,e)?'move':(()=>{const P=place(c.it,c.w,c.h,c.strip);return P.mx*V.k>2||P.my*V.k>2?'grab':'move'})();return}
   if(drag.mode==='row'){const r=view.getBoundingClientRect();let f=(e.clientY-r.top-drag.top)/drag.full;f=Math.max(.06,Math.min(1,f));if(f>.97)f=1;
     S.rowH[drag.row]=Math.round(f*1000)/1000;view.style.cursor='ns-resize';drag.f=f;draw();renderPanel();return}
   const d=drag,r=view.getBoundingClientRect();d.px=e.clientX-r.left;d.py=e.clientY-r.top;
-  const c=cellAt(e),moved=Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>4;
-  if(c&&c.it!==d.it){d.mode='swap';d.over=c.it;d.it.ox=d.ox;d.it.oy=d.oy}
-  else{d.over=null;
-    if(d.canPan&&!e.shiftKey&&moved){d.mode='pan';
-      d.it.ox=d.mx>2?d.ox+(e.clientX-d.sx)/d.mx:d.ox;d.it.oy=d.my>2?d.oy+(e.clientY-d.sy)/d.my:d.oy}
-    else if(moved&&d.mode!=='pan')d.mode='swap'}
+  const moved=Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>4;if(!moved&&!d.mode)return;
+  if(d.swap){d.mode='swap';const c=cellAt(e);d.over=c&&c.it!==d.it?c.it:null;view.style.cursor='grabbing';draw();return}
+  // panning stays panning even when the mouse leaves the frame
+  d.mode='pan';d.it.ox=d.mx>2?d.ox+(e.clientX-d.sx)/d.mx:d.ox;d.it.oy=d.my>2?d.oy+(e.clientY-d.sy)/d.my:d.oy;
   view.style.cursor='grabbing';draw();
 });
+view.addEventListener('pointerleave',()=>{if(!drag&&V.hov){V.hov=null;draw()}});
 function up(){if(!drag)return;const d=drag;drag=null;view.style.cursor='default';
   if(d.mode==='row'){render();return}
   if(d.over&&d.over!==d.it){const a=S.items.indexOf(d.it),b=S.items.indexOf(d.over);[S.items[a],S.items[b]]=[S.items[b],S.items[a]];render();return}
   if(d.mode==='pan'){sizeSoon();commit()}draw()}
 view.addEventListener('pointerup',up);view.addEventListener('pointercancel',up);
 view.addEventListener('wheel',e=>{const c=cellAt(e);if(!c)return;e.preventDefault();
+  if(c.strip&&!e.ctrlKey&&!e.metaKey){const P=place(c.it,c.w,c.h,c.strip);if(P.my>0){c.it.oy=Math.max(-1,Math.min(1,c.it.oy+(e.deltaY>0?-1:1)*Math.min(.25,12/(P.my*V.k+1))));
+    S.sel=c.it.id;renderPanel();draw();sizeSoon();clearTimeout(wt);wt=setTimeout(commit,400)}return}
   c.it.zoom=Math.max(1,Math.min(5,c.it.zoom*(e.deltaY<0?1.1:1/1.1)));if(c.it.zoom<1.01)c.it.zoom=1;S.sel=c.it.id;renderPanel();draw();sizeSoon();clearTimeout(wt);wt=setTimeout(commit,400)},{passive:false});let wt;
 
 /* ---------- panel ---------- */
