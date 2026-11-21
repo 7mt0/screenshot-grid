@@ -19,16 +19,27 @@
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif;overflow-x:clip}
-.wrap{max-width:1400px;margin:0 auto;padding:14px max(2vw,12px) 24px}
+.wrap{max-width:1880px;margin:0 auto;padding:14px max(2vw,12px) 24px}
 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 h1{font-size:26px;line-height:1.05;margin:0 8px 0 0;font-weight:700}
-.top p{margin:0;color:var(--mute);font-size:14px}
+.top>p{margin:0;color:var(--mute);font-size:14px}
 .sp{flex:1}
+.dlg{position:relative;display:flex}.dlg>#save{border-radius:10px 0 0 10px}
+.dlg>.cv{border-radius:0 10px 10px 0;border-left:1px solid rgba(255,255,255,.4);padding:0 14px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dlg>.cv[aria-expanded=true]{filter:brightness(.9)}
+.pop{position:absolute;right:0;top:calc(100% + 8px);z-index:40;width:min(360px,92vw);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px;box-shadow:0 18px 50px -14px rgba(0,0,0,.55)}
+.pop h3{margin:0;font-size:15px;display:flex;justify-content:space-between;align-items:baseline}.pop h3 small{font-weight:400;color:var(--mute);font-size:13px}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden}.seg button{font:inherit;font-weight:600;min-height:40px;border:0;background:var(--panel);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--acc);color:#fff}
 .btn{min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-weight:600;padding:0 16px;cursor:pointer}
 .btn:hover{border-color:var(--ink)}.btn:disabled{opacity:.45;cursor:default}
 .btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
 .btn:focus-visible,.chip:focus-visible,.ib:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.main{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:12px;align-items:start}
+.main{display:grid;grid-template-columns:290px minmax(0,1fr) 330px;gap:12px;align-items:start}
+.addBig{width:100%;min-height:64px;border:2px dashed var(--acc);border-radius:14px;background:var(--soft);color:var(--ink);font:inherit;font-size:16px;font-weight:600;cursor:pointer;display:grid;place-items:center;gap:2px;padding:10px}
+.addBig:hover{background:var(--panel)}.addBig small{font-weight:400;font-size:12.5px;color:var(--mute)}
+.addBig .plus{color:var(--acc);font-size:20px;line-height:1;margin-right:6px}
+#frameNone{color:var(--mute);font-size:14px;text-align:center;padding:22px 14px}
 .stage{position:relative;height:calc(100vh - 110px);min-height:460px;background:var(--stage);border-radius:14px;overflow:hidden}
 .stage.drag{outline:3px dashed var(--acc);outline-offset:-8px}
 #view{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
@@ -87,62 +98,54 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 .ver{font-size:12px;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:2px 8px;white-space:nowrap}
 .contact{max-width:1400px;margin:0 auto;padding:0 max(2vw,12px) 20px;font-size:13px;color:var(--mute)}
 .contact a{color:var(--ink);font-weight:600}.contact b{color:var(--ink)}
-.stageContact{position:absolute;right:14px;bottom:14px;margin:0;max-width:46%;text-align:right;font-size:12px;line-height:1.4;color:rgba(255,255,255,.55);pointer-events:auto}
+.stageContact{position:absolute;right:14px;bottom:14px;margin:0;white-space:nowrap;text-align:right;font-size:12px;line-height:1.4;color:rgba(255,255,255,.55);pointer-events:auto}
 .stageContact a,.stageContact b{color:rgba(255,255,255,.85);font-weight:600}
 @media(max-width:700px){.stageContact{display:none}}
 [hidden]{display:none!important}
-@media(max-width:1420px){.top p{display:none}}
-@media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.stage{height:58vh;min-height:320px}aside{max-height:none}}
-@media(max-width:600px){h1{font-size:22px}.top p{width:100%;order:3}}
+@media(max-width:1420px){.top>p{display:none}}
+@media(max-width:1180px){.main{grid-template-columns:minmax(0,1fr) 320px}.stage{grid-column:1;grid-row:1/3}aside.left{grid-column:2;grid-row:1;max-height:none}aside.right{grid-column:2;grid-row:2;max-height:none}}
+@media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.stage{grid-row:auto;height:58vh;min-height:320px}aside.left,aside.right{grid-column:1;grid-row:auto;max-height:none}}
+@media(max-width:600px){h1{font-size:22px}.top>p{width:100%;order:3}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <h1>Screenshot Grid</h1><span class="ver" title="Version">v22 Nov · X/Y</span>
+    <h1>Screenshot Grid</h1><span class="ver" title="Version">v26 Nov · scroll zoom</span>
     <p>Episode caps in a clean grid, every frame whole and sharp.</p>
     <span class="sp"></span>
     <button class="btn" id="undoB" type="button" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button>
     <button class="btn" id="redoB" type="button" title="Redo (Ctrl+Y)" aria-label="Redo" disabled>↷</button>
     <button class="btn" id="keysBtn" type="button" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">?</button>
-    <button class="btn" id="add" type="button">Add screenshots</button>
+    <span style="width:6px"></span>
     <button class="btn" id="copyB" type="button" title="Copy the grid to the clipboard, then paste it anywhere (Ctrl+C)" disabled>Copy to clipboard</button>
-    <button class="btn pri" id="save" type="button" disabled>Download</button>
+    <div class="dlg">
+      <button class="btn pri" id="save" type="button" disabled>Download</button>
+      <button class="btn pri cv" id="expT" type="button" aria-expanded="false" aria-controls="expPop" title="Format, quality and size" aria-label="Export settings">▾</button>
+      <div class="pop" id="expPop" hidden role="dialog" aria-label="Export settings">
+        <h3>Export <small>File <b id="pSize">—</b></small></h3>
+        <div class="f"><span>Format</span>
+          <div class="seg" id="fmtSeg"><button type="button" data-f="jpg">JPG <span style="font-weight:400;opacity:.8">smaller</span></button><button type="button" data-f="png">PNG <span style="font-weight:400;opacity:.8">lossless</span></button></div>
+          <select id="fmt" hidden><option value="jpg">JPG</option><option value="png">PNG</option></select></div>
+        <label class="f" id="qW"><span>Quality <b id="qO">100</b></span><input type="range" id="q" min="60" max="100" value="100"></label>
+        <label class="f"><span>Size</span>
+          <select id="max">
+            <option value="4096">Largest X keeps (4096 px long side)</option>
+            <option value="0">Original resolution</option>
+            <option value="2560">2560 px long side</option>
+            <option value="2048">2048 px long side</option>
+          </select></label>
+        <p class="hint" id="xHint">X uploads images up to 5 MB and 4096 × 4096 px. Keep under both and it won't shrink your grid further.</p>
+        <button class="btn pri" id="save2" type="button">Download</button>
+        <p class="hint">Your screenshots stay on your device. Nothing is uploaded.</p>
+      </div>
+    </div>
   </div>
 
   <div class="main">
-    <div class="stage" id="stage">
-      <canvas id="view" aria-label="Grid preview"></canvas>
-      <div id="empty"><div>
-        <h2>Add your screenshots</h2>
-        <p>Pick as many caps as you like, drop them here, or paste with Ctrl+V. The tool suggests every grid that fits them.</p>
-        <p style="font-size:13px;margin:-4px 0 14px">Suggestions or problems? X <a href="https://x.com/aka7mto" target="_blank" rel="noopener">@aka7mto</a> · Discord <b>7mto</b></p>
-        <button class="btn pri" id="add2" type="button">Add screenshots</button>
-      </div></div>
-      <div class="info" id="info" hidden>
-        <span>Final <b id="iDim">—</b></span>
-        <span>Each frame <b id="iCell">—</b></span>
-        <span id="iSizeW">File <b id="iSize">…</b></span>
-      </div>
-      <p id="msg" role="status"></p>
-      <p class="stageContact">Have a suggestion or found a problem? Contact me on X <a href="https://x.com/aka7mto" target="_blank" rel="noopener">@aka7mto</a> or Discord <b>7mto</b></p>
-    </div>
-
-    <aside>
-      <section class="card" id="layCard" hidden>
-        <h3>Layout <small>columns × rows</small></h3>
-        <div class="chips" id="chips"></div>
-        <label class="f"><span>Frame shape</span>
-          <select id="ar">
-            <option value="auto">Same as the screenshots</option>
-            <option value="1.7778">16:9</option><option value="2.3333">21:9 (cinema)</option>
-            <option value="1.3333">4:3</option><option value="1">1:1</option><option value="0.5625">9:16</option>
-          </select></label>
-        <button class="btn small" id="subStack" type="button" title="First screenshot full, the rest as thin subtitle strips under it">Subtitle stack <span style="font-weight:400;color:var(--mute)">(1 full + subtitle strips)</span></button>
-        <label class="chk"><input type="checkbox" id="bars"> Remove black bars around screenshots</label>
-        <label class="chk"><input type="checkbox" id="fill"> Fill frames (crop edges if shapes differ)</label>
-      </section>
-
+    <aside class="left">
+      <button class="addBig" id="add" type="button"><span><span class="plus">+</span>Add screenshots</span><small>or drop them anywhere · Ctrl+V to paste</small></button>
+      <section class="card" id="frameNone" hidden>Click a frame in the grid to adjust its zoom, position and row height.</section>
       <section class="card" id="frameCard" hidden>
         <h3>Selected frame <small id="fName"></small></h3>
         <label class="f"><span>Zoom <b id="zO">100%</b></span><input type="range" id="z" min="100" max="500" value="100"></label>
@@ -158,12 +161,46 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
           <button class="btn small grow" id="fhFull" type="button">Full height</button>
         </div>
         <button class="btn small" id="repl" type="button">Replace image… <span style="font-weight:400;color:var(--mute)">(keeps this spot)</span></button>
-        <p class="hint">Drag the bottom edge of a frame to make its row shorter or taller. Drag inside a strip or zoomed frame (or scroll on a strip) to choose what shows. To swap two frames, drag one by its ⠿ handle in the corner onto the other. Drop a screenshot file on a frame to replace it. Scroll on a full frame, or Ctrl+scroll on a strip, to zoom it. While dragging, the picture snaps to the centre and a red line shows it — hold Alt to move freely. Arrow keys nudge it 1 px (Shift+arrows: 10 px).</p>
+        <p class="hint">Drag the bottom edge of a frame to make its row shorter or taller. Drag inside a strip or zoomed frame to choose what shows. To swap two frames, drag one by its ⠿ handle in the corner onto the other. Drop a screenshot file on a frame to replace it. Scroll on any frame to zoom it. While dragging, the picture snaps to the centre and a red line shows it — hold Alt to move freely. Arrow keys nudge it 1 px (Shift+arrows: 10 px).</p>
         <div class="row">
           <button class="btn small grow" id="zReset" type="button">Reset frame</button>
           <button class="btn small grow" id="zAll" type="button">Same zoom for all</button>
         </div>
       </section>
+    </aside>
+
+    <div class="stage" id="stage">
+      <canvas id="view" aria-label="Grid preview"></canvas>
+      <div id="empty"><div>
+        <h2>Add your screenshots</h2>
+        <p>Pick as many caps as you like, drop them here, or paste with Ctrl+V. The tool suggests every grid that fits them.</p>
+        <p style="font-size:13px;margin:-4px 0 14px">Suggestions or problems? X <a href="https://x.com/aka7mto" target="_blank" rel="noopener">@aka7mto</a> · Discord <b>7mto</b></p>
+        <button class="btn pri" id="add2" type="button">Add screenshots</button>
+      </div></div>
+      <div class="info" id="info" hidden>
+        <span>Final <b id="iDim">—</b></span>
+        <span>Each frame <b id="iCell">—</b></span>
+        <span id="iSizeW">File <b id="iSize">…</b></span>
+      </div>
+      <p id="msg" role="status"></p>
+      <p class="stageContact">Suggestions or problems? X <a href="https://x.com/aka7mto" target="_blank" rel="noopener">@aka7mto</a> · Discord <b>7mto</b></p>
+    </div>
+
+    <aside class="right">
+      <section class="card" id="layCard" hidden>
+        <h3>Layout <small>columns × rows</small></h3>
+        <div class="chips" id="chips"></div>
+        <label class="f"><span>Frame shape</span>
+          <select id="ar">
+            <option value="auto">Same as the screenshots</option>
+            <option value="1.7778">16:9</option><option value="2.3333">21:9 (cinema)</option>
+            <option value="1.3333">4:3</option><option value="1">1:1</option><option value="0.5625">9:16</option>
+          </select></label>
+        <button class="btn small" id="subStack" type="button" title="First screenshot full, the rest as thin subtitle strips under it">Subtitle stack <span style="font-weight:400;color:var(--mute)">(1 full + subtitle strips)</span></button>
+        <label class="chk"><input type="checkbox" id="bars"> Remove black bars around screenshots</label>
+        <label class="chk"><input type="checkbox" id="fill"> Fill frames (crop edges if shapes differ)</label>
+      </section>
+
 
       <section class="card" id="listCard" hidden>
         <h3>Frames <small id="cnt"></small></h3>
@@ -189,27 +226,6 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
         </div>
       </section>
 
-      <section class="card" id="expCard" hidden>
-        <h3>Export</h3>
-        <label class="f"><span>Size</span>
-          <select id="max">
-            <option value="4096">Largest X keeps (4096 px long side)</option>
-            <option value="0">Original resolution</option>
-            <option value="2560">2560 px long side</option>
-            <option value="2048">2048 px long side</option>
-          </select></label>
-        <div class="row">
-          <label class="f grow"><span>Format</span>
-            <select id="fmt"><option value="jpg">JPG</option><option value="png">PNG</option></select></label>
-          <label class="f grow" id="qW"><span>Quality <b id="qO">92</b></span><input type="range" id="q" min="60" max="100" value="92"></label>
-        </div>
-        <p class="hint" id="xHint">X uploads images up to 5 MB and 4096 × 4096 px. Keep under both and it won't shrink your grid further.</p>
-        <div class="row">
-          <button class="btn grow" id="copyB2" type="button">Copy to clipboard</button>
-          <button class="btn pri grow" id="save2" type="button">Download</button>
-        </div>
-        <p class="hint">Your screenshots stay on your device. Nothing is uploaded.</p>
-      </section>
     </aside>
   </div>
 </div>
@@ -227,11 +243,11 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 {
 const $=id=>document.getElementById(id);
 const view=$('view'),vx=view.getContext('2d'),stage=$('stage');
-const S={rowH:[],auto:true,bars:true,items:[],c:2,r:2,ar:'auto',fill:false,gap:0,gc:'#000000',outer:false,max:4096,fmt:'jpg',q:92,sel:null};
+const S={rowH:[],auto:true,bars:true,items:[],c:2,r:2,ar:'auto',fill:false,gap:0,gc:'#000000',outer:false,max:4096,fmt:'jpg',q:100,sel:null};
 let uid=0,drag=null,dl=null,V={w:0,h:0,dpr:1,k:1,ox:0,oy:0};
 const R=Math.round,fmtN=n=>R(n).toLocaleString('en-US');
-try{const o=JSON.parse(localStorage.getItem('grid-opts')||'{}');for(const k of ['fill','gc','max','fmt','q','auto','bars'])if(k in o)S[k]=o[k]}catch(e){}
-function persist(){try{const o={};for(const k of ['fill','gc','max','fmt','q','auto','bars'])o[k]=S[k];localStorage.setItem('grid-opts',JSON.stringify(o))}catch(e){}}
+try{const o=JSON.parse(localStorage.getItem('grid-opts')||'{}');for(const k of ['fill','gc','max','fmt','auto','bars'])if(k in o)S[k]=o[k]}catch(e){}
+function persist(){try{const o={};for(const k of ['fill','gc','max','fmt','auto','bars'])o[k]=S[k];localStorage.setItem('grid-opts',JSON.stringify(o))}catch(e){}}
 let mt;function say(t){const m=$('msg');m.textContent=t;m.classList.add('on');clearTimeout(mt);mt=setTimeout(()=>m.classList.remove('on'),2400)}
 
 /* ---------- loading ---------- */
@@ -382,7 +398,7 @@ function draw(){
     vx.fillStyle='rgba(0,0,0,.85)';vx.fillRect(V.ox+G.W*V.k/2-tw/2,y+6,tw,22);vx.fillStyle='#fff';vx.textBaseline='middle';vx.fillText(t,V.ox+G.W*V.k/2-tw/2+8,y+17.5);vx.restore()}
   if(drag&&drag.mode==='swap'){const it=drag.it,tw=150,th=tw*it.ih/it.iw;vx.save();vx.globalAlpha=.85;vx.shadowColor='rgba(0,0,0,.6)';vx.shadowBlur=16;
     vx.drawImage(it.im,drag.px-tw/2,drag.py-th/2,tw,th);vx.globalAlpha=1;vx.shadowColor='transparent';vx.lineWidth=2;vx.strokeStyle='#e3392b';vx.strokeRect(drag.px-tw/2,drag.py-th/2,tw,th);vx.restore()}
-  $('iDim').textContent=`${fmtN(G.W)} × ${fmtN(G.H)} px`;$('iCell').textContent=`${fmtN(G.cw)} × ${fmtN(G.ch)}`;
+  $('iDim').textContent=`${fmtN(G.W)} × ${fmtN(G.H)} px`;$('iCell').textContent=`${fmtN(G.cw)} × ${fmtN(G.ch)}`;fitContact();
 }
 function cellAt(e){const r=view.getBoundingClientRect(),x=(e.clientX-r.left-V.ox)/V.k,y=(e.clientY-r.top-V.oy)/V.k;
   return V.G&&V.G.cells.find(c=>x>=c.x&&x<c.x+c.w&&y>=c.y&&y<c.y+c.h)||null}
@@ -428,16 +444,14 @@ function up(){if(!drag)return;const d=drag;drag=null;view.style.cursor='default'
   if(d.mode==='pan'){sizeSoon();commit();flashGuide(d.it,900)}draw()}
 view.addEventListener('pointerup',up);view.addEventListener('pointercancel',up);
 view.addEventListener('wheel',e=>{const c=cellAt(e);if(!c)return;e.preventDefault();
-  if(c.strip&&!e.ctrlKey&&!e.metaKey){const P=place(c.it,c.w,c.h,c.strip);if(P.my>0){c.it.oy=Math.max(-1,Math.min(1,c.it.oy+(e.deltaY>0?-1:1)*Math.min(.25,12/(P.my*V.k+1))));
-    S.sel=c.it.id;flashGuide(c.it);renderPanel();draw();sizeSoon();clearTimeout(wt);wt=setTimeout(commit,400)}return}
-  c.it.zoom=Math.max(1,Math.min(5,c.it.zoom*(e.deltaY<0?1.1:1/1.1)));if(c.it.zoom<1.01)c.it.zoom=1;S.sel=c.it.id;renderPanel();draw();sizeSoon();clearTimeout(wt);wt=setTimeout(commit,400)},{passive:false});let wt;
+  c.it.zoom=Math.max(1,Math.min(5,c.it.zoom*(e.deltaY<0?1.1:1/1.1)));if(c.it.zoom<1.01)c.it.zoom=1;S.sel=c.it.id;flashGuide(c.it);renderPanel();draw();sizeSoon();clearTimeout(wt);wt=setTimeout(commit,400)},{passive:false});let wt;
 
 /* ---------- panel ---------- */
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function arTxt(a){const cands=[[16,9],[21,9],[4,3],[3,2],[1,1],[3,4],[2,3],[9,16]];for(const [x,y] of cands)if(Math.abs(a-x/y)<.01)return x+':'+y;return a>=1?a.toFixed(2)+':1':'1:'+(1/a).toFixed(2)}
 function renderPanel(){
   const n=S.items.length,has=n>0;
-  for(const id of ['layCard','listCard','lookCard','expCard'])$(id).hidden=!has;
+  for(const id of ['layCard','listCard','lookCard'])$(id).hidden=!has;
   $('empty').hidden=has;$('info').hidden=!has;$('save').disabled=!has;
   if(!has){$('frameCard').hidden=true;return}
   const ops=options(),car=cellAR();
@@ -452,12 +466,12 @@ function renderPanel(){
     <button class="ib" data-a="l" ${i===0?'disabled':''} aria-label="Move earlier">←</button>
     <button class="ib" data-a="r" ${i===n-1?'disabled':''} aria-label="Move later">→</button>
     <button class="ib x" data-a="x" aria-label="Remove">×</button></div></li>`).join('');
-  const it=S.items.find(i=>i.id===S.sel);$('frameCard').hidden=!it;
+  const it=S.items.find(i=>i.id===S.sel);$('frameCard').hidden=!it;$('frameNone').hidden=!!it||!S.items.length;
   if(it){const ri=Math.floor(S.items.indexOf(it)/S.c),rh=Math.round((S.rowH[ri]??1)*100);if(document.activeElement!==$('fh'))$('fh').value=rh;$('fhO').textContent=rh+'%';
     $('fName').textContent='#'+(S.items.indexOf(it)+1)+(it.t!=null?' · at '+fmtT(it.t):'')+' · '+fmtN(it.iw)+' × '+fmtN(it.ih);$('z').value=R(it.zoom*100);$('zO').textContent=R(it.zoom*100)+'%';syncPos()}
   $('auto').checked=S.auto;
   $('ar').value=S.ar;$('bars').checked=S.bars;$('fill').checked=S.fill;$('gap').value=S.gap;$('gO').textContent=S.gap+' px';$('gc').value=S.gc;$('outer').checked=S.outer;
-  $('max').value=String(S.max);$('fmt').value=S.fmt;$('q').value=S.q;$('qO').textContent=S.q;$('qW').hidden=S.fmt!=='jpg';
+  $('max').value=String(S.max);$('fmt').value=S.fmt;$('q').value=S.q;$('qO').textContent=S.q;$('qW').hidden=S.fmt!=='jpg';expLabel();
 }
 function render(){if(S.items.length&&!options().some(o=>o.c===S.c&&o.r===S.r))pickDefault();renderPanel();draw();sizeSoon();$('copyB').disabled=!S.items.length;commit()}
 $('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;S.c=+b.dataset.c;S.r=+b.dataset.r;S.rowH=[];render()});
@@ -472,7 +486,7 @@ $('zAll').onclick=()=>{const it=S.items.find(i=>i.id===S.sel);if(!it)return;for(
 const opt=(id,key,conv,ev='change')=>$(id).addEventListener(ev,e=>{S[key]=conv(e.target);persist();if(key==='ar'||key==='bars')pickDefault();render()});
 opt('ar','ar',t=>t.value);opt('bars','bars',t=>t.checked);opt('fill','fill',t=>t.checked);opt('gap','gap',t=>+t.value,'input');opt('gc','gc',t=>t.value,'input');
 opt('outer','outer',t=>t.checked);opt('max','max',t=>+t.value);opt('fmt','fmt',t=>t.value);opt('q','q',t=>+t.value);
-$('q').addEventListener('input',e=>{$('qO').textContent=e.target.value});
+$('q').addEventListener('input',e=>{$('qO').textContent=e.target.value;S.q=+e.target.value;expLabel();sizeSoon()});
 
 function syncPos(){const it=S.items.find(i=>i.id===S.sel);if(!it)return;const q=posOf(it);if(!q)return;
   for(const [a,v,m] of [['X',q.x,q.mx],['Y',q.y,q.my]]){const inp=$('p'+a);inp.disabled=m<1;$('c'+a).disabled=m<1;inp.min=-m;inp.max=m;
@@ -506,14 +520,14 @@ $('rev').onclick=()=>{S.items.reverse();render()};
 $('auto').onchange=e=>{S.auto=e.target.checked;persist()};
 
 // let go of a slider once it is set, so arrow keys go back to moving between frames
-document.querySelectorAll('aside input[type=range]').forEach(r=>r.addEventListener('change',()=>r.blur()));
+document.querySelectorAll('aside input[type=range],#expPop input[type=range]').forEach(r=>r.addEventListener('change',()=>r.blur()));
 
 /* ---------- export ---------- */
 function build(png){return new Promise(res=>{const G=geo(+S.max),o=document.createElement('canvas');o.width=G.W;o.height=G.H;
   drawCells(o.getContext('2d'),G,1);o.toBlob(b=>res(b),!png&&S.fmt==='jpg'?'image/jpeg':'image/png',S.q/100)})}
 let st,seq=0;
 function sizeSoon(){clearTimeout(st);if(!S.items.length)return;$('iSize').textContent='…';st=setTimeout(async()=>{const my=++seq;const b=await build();if(my!==seq||!b)return;
-  const mb=b.size/1048576;$('iSize').textContent=mb>=1?mb.toFixed(1)+' MB':R(b.size/1024)+' KB';
+  const mb=b.size/1048576;$('iSize').textContent=$('pSize').textContent=mb>=1?mb.toFixed(1)+' MB':R(b.size/1024)+' KB';$('pSize').style.color=mb>5?'#e3392b':'';fitContact();
   const over=mb>5;$('iSizeW').classList.toggle('warn',over);$('iSizeW').title=over?'Over 5 MB: X will recompress it':'';
   $('xHint').textContent=over?'Over X\'s 5 MB limit: lower JPG quality, pick a smaller size, or use JPG instead of PNG.':'X uploads images up to 5 MB and 4096 × 4096 px. Keep under both and it won\'t shrink your grid further.'},500)}
 async function save(){
@@ -523,7 +537,13 @@ async function save(){
   try{await dl.save({filename:name,data:b});say('Saved ✓')}
   catch(err){const c=err&&err.code;say(c==='declined'?'Save cancelled':c==='rate_limited'?'A save prompt is already open':'Could not save here')}
 }
-$('save').onclick=save;$('save2').onclick=save;
+$('save').onclick=save;$('save2').onclick=()=>{expOpen(false);save()};
+function expOpen(on){$('expPop').hidden=!on;$('expT').setAttribute('aria-expanded',on)}
+$('expT').onclick=e=>{e.stopPropagation();expOpen($('expPop').hidden)};
+document.addEventListener('pointerdown',e=>{if(!$('expPop').hidden&&!e.target.closest('.dlg'))expOpen(false)});
+$('fmtSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('fmt').value=b.dataset.f;$('fmt').dispatchEvent(new Event('change'))};
+function expLabel(){$('expT').title='Export settings: '+(S.fmt==='jpg'?'JPG, quality '+S.q:'PNG')+(+S.max?'':', original size');
+  for(const b of $('fmtSeg').querySelectorAll('button'))b.setAttribute('aria-pressed',b.dataset.f===S.fmt)}
 
 /* ---------- inputs ---------- */
 const pick=()=>$('file').click();for(const id of ['add','add2','add3'])$(id).onclick=pick;
@@ -586,12 +606,13 @@ async function copyGrid(){
     await navigator.clipboard.write([new ClipboardItem({'image/png':build(true)})]);say('Grid copied: paste it into X with Ctrl+V')}
   catch(e){say('Copying is blocked here. Use Download instead')}
 }
-$('copyB').onclick=copyGrid;$('copyB2').onclick=copyGrid;
+$('copyB').onclick=copyGrid;
 
 /* ---------- keyboard ---------- */
 const selIdx=()=>S.items.findIndex(i=>i.id===S.sel);
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&!$('keys').hidden){keysOpen(false);return}
+  if(e.key==='Escape'&&!$('expPop').hidden){expOpen(false);$('expT').focus();return}
   const ae=document.activeElement,inField=ae&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName)&&!['range','checkbox','color'].includes(ae.type);
   if(ae&&ae.type==='range'&&e.key.startsWith('Arrow'))return; // arrows move the slider, not the frames
   const m=e.ctrlKey||e.metaKey,k=e.key.toLowerCase();
@@ -623,7 +644,10 @@ document.addEventListener('keydown',e=>{
   S.sel=S.items[j].id;
   render();
 });
-const ro=new ResizeObserver(()=>{layout();draw()});ro.observe(stage);
+// the contact line hides itself when the info pills need the room (the footer still has it)
+function fitContact(){const c=document.querySelector('.stageContact');if(!c)return;c.style.visibility='';if($('info').hidden)return;
+  const r=Math.max(0,...[...document.querySelectorAll('#info span')].map(e=>e.getBoundingClientRect().right));c.style.visibility=r+12>c.getBoundingClientRect().left?'hidden':''}
+const ro=new ResizeObserver(()=>{layout();draw();fitContact()});ro.observe(stage);
 
 layout();render();
 (async()=>{try{if(window.claude&&typeof window.claude.use==='function')dl=await window.claude.use('downloads')}catch(e){dl=null}})();
