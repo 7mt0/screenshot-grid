@@ -72,6 +72,9 @@ input[type=color]{width:48px;height:42px;border:1px solid var(--line);border-rad
 .ib{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);display:grid;place-items:center;padding:0;cursor:pointer;font-size:14px;line-height:1}
 .ib:disabled{opacity:.3;cursor:default}.ib.x:hover{color:var(--acc);border-color:var(--acc)}
 .hint{font-size:13px;color:var(--mute);margin:0}
+.pos{display:grid;grid-template-columns:auto 1fr auto;gap:6px 8px;align-items:center}.pos>b{font-size:14px;font-weight:600;width:14px}
+.pos input[type=number]{font:inherit;font-size:16px;min-height:40px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);padding:0 10px;width:100%;font-variant-numeric:tabular-nums}
+.pos input:disabled{opacity:.45}.pos .ib{width:auto;height:40px;padding:0 10px;font-size:13px;font-weight:600}.pos small{grid-column:2/4;font-size:12px;color:var(--mute);margin-top:-4px}
 
 .keys{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:50;padding:16px}
 .keys>div{background:var(--panel);color:var(--ink);border-radius:14px;max-width:520px;width:100%;max-height:90vh;overflow:auto;padding:18px 20px;box-shadow:0 20px 60px -20px rgba(0,0,0,.6)}
@@ -96,7 +99,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 <body>
 <div class="wrap">
   <div class="top">
-    <h1>Screenshot Grid</h1><span class="ver" title="Version">v21 Nov · gap 0</span>
+    <h1>Screenshot Grid</h1><span class="ver" title="Version">v22 Nov · X/Y</span>
     <p>Episode caps in a clean grid, every frame whole and sharp.</p>
     <span class="sp"></span>
     <button class="btn" id="undoB" type="button" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button>
@@ -143,13 +146,19 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
       <section class="card" id="frameCard" hidden>
         <h3>Selected frame <small id="fName"></small></h3>
         <label class="f"><span>Zoom <b id="zO">100%</b></span><input type="range" id="z" min="100" max="500" value="100"></label>
+        <div class="f"><span style="font-size:14px;color:var(--mute);display:flex;justify-content:space-between">Position in frame <b id="posC" style="color:var(--ink);font-weight:600"></b></span>
+          <div class="pos">
+            <b>X</b><input type="number" id="pX" step="1" inputmode="numeric" aria-label="Horizontal position, pixels from centre"><button class="ib" id="cX" type="button" title="Centre horizontally">↔ Centre</button><small id="pXr"></small>
+            <b>Y</b><input type="number" id="pY" step="1" inputmode="numeric" aria-label="Vertical position, pixels from centre"><button class="ib" id="cY" type="button" title="Centre vertically">↕ Centre</button><small id="pYr"></small>
+          </div>
+        </div>
         <label class="f"><span>Height of this row <b id="fhO">100%</b></span><input type="range" id="fh" min="6" max="100" value="100"></label>
         <div class="row">
           <button class="btn small grow" id="fhSub" type="button">Subtitle only</button>
           <button class="btn small grow" id="fhFull" type="button">Full height</button>
         </div>
         <button class="btn small" id="repl" type="button">Replace image… <span style="font-weight:400;color:var(--mute)">(keeps this spot)</span></button>
-        <p class="hint">Drag the bottom edge of a frame to make its row shorter or taller. Drag inside a strip or zoomed frame (or scroll on a strip) to choose what shows. To swap two frames, drag one by its ⠿ handle in the corner onto the other. Drop a screenshot file on a frame to replace it. Scroll on a full frame, or Ctrl+scroll on a strip, to zoom it.</p>
+        <p class="hint">Drag the bottom edge of a frame to make its row shorter or taller. Drag inside a strip or zoomed frame (or scroll on a strip) to choose what shows. To swap two frames, drag one by its ⠿ handle in the corner onto the other. Drop a screenshot file on a frame to replace it. Scroll on a full frame, or Ctrl+scroll on a strip, to zoom it. While dragging, the picture snaps to the centre and a red line shows it — hold Alt to move freely. Arrow keys nudge it 1 px (Shift+arrows: 10 px).</p>
         <div class="row">
           <button class="btn small grow" id="zReset" type="button">Reset frame</button>
           <button class="btn small grow" id="zAll" type="button">Same zoom for all</button>
@@ -207,7 +216,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 <footer class="contact">Suggestions, edit requests or a problem? Message me on <a href="https://x.com/aka7mto" target="_blank" rel="noopener">X @aka7mto</a> or Discord <b>7mto</b>.</footer>
 <div class="keys" id="keys" hidden role="dialog" aria-modal="true" aria-labelledby="keysT"><div>
   <h2 id="keysT">Keyboard shortcuts <button class="btn small" id="keysX" type="button">Close</button></h2>
-  <table><tr><td><kbd>Ctrl</kbd>+<kbd>V</kbd></td><td>Paste screenshots</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd></td><td>Replace the selected frame with the pasted screenshot</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>C</kbd></td><td>Copy the whole grid as an image — paste it straight into X</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Download</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Add screenshots</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>Y</kbd> <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Redo</td></tr><tr><td><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></td><td>Select another frame</td></tr><tr><td><kbd>Shift</kbd>+<kbd>←</kbd> …</td><td>Move the selected frame</td></tr><tr><td><kbd>+</kbd> <kbd>−</kbd></td><td>Zoom the selected frame</td></tr><tr><td><kbd>0</kbd></td><td>Reset the selected frame</td></tr><tr><td><kbd>Delete</kbd></td><td>Remove the selected frame</td></tr><tr><td><kbd>1</kbd> … <kbd>9</kbd></td><td>Pick layout 1–9 from the list</td></tr><tr><td><kbd>?</kbd></td><td>Show this list</td></tr><tr><td><kbd>Esc</kbd></td><td>Close</td></tr></table>
+  <table><tr><td><kbd>Ctrl</kbd>+<kbd>V</kbd></td><td>Paste screenshots</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd></td><td>Replace the selected frame with the pasted screenshot</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>C</kbd></td><td>Copy the whole grid as an image — paste it straight into X</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Download</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Add screenshots</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>Y</kbd> <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Redo</td></tr><tr><td><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></td><td>Move the picture inside the selected frame 1 px (add <kbd>Shift</kbd> for 10 px)</td></tr><tr><td><kbd>Alt</kbd>+<kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></td><td>Select another frame</td></tr><tr><td><kbd>+</kbd> <kbd>−</kbd></td><td>Zoom the selected frame</td></tr><tr><td><kbd>C</kbd></td><td>Centre the picture inside the frame</td></tr><tr><td><kbd>0</kbd></td><td>Reset the selected frame</td></tr><tr><td><kbd>Delete</kbd></td><td>Remove the selected frame</td></tr><tr><td><kbd>1</kbd> … <kbd>9</kbd></td><td>Pick layout 1–9 from the list</td></tr><tr><td><kbd>?</kbd></td><td>Show this list</td></tr><tr><td><kbd>Esc</kbd></td><td>Close</td></tr></table>
   <p>On a Mac use <kbd>⌘</kbd> instead of <kbd>Ctrl</kbd>.</p>
   <p>Suggestions, edit requests or a problem? X <a href="https://x.com/aka7mto" target="_blank" rel="noopener">@aka7mto</a> · Discord <b>7mto</b></p>
 </div></div>
@@ -320,6 +329,24 @@ function place(it,w,h,strip){
   it.ox=Math.max(-1,Math.min(1,it.ox));it.oy=Math.max(-1,Math.min(1,it.oy));
   return{dw,dh,dx:(w-dw)/2+it.ox*mx,dy:(h-dh)/2+it.oy*my,mx,my};
 }
+/* position of the picture inside its cell, in final-image pixels (0 = centred) */
+function cellOf(it){const G=V.G||geo(+S.max);return G.cells.find(c=>c.it===it)}
+function posOf(it){const c=cellOf(it);if(!c)return null;const P=place(it,c.w,c.h,c.strip);return{x:R(it.ox*P.mx),y:R(it.oy*P.my),mx:R(P.mx),my:R(P.my)}}
+function setPos(it,x,y){const c=cellOf(it);if(!c)return;const P=place(it,c.w,c.h,c.strip);
+  if(x!=null&&P.mx>0)it.ox=Math.max(-1,Math.min(1,x/P.mx));if(y!=null&&P.my>0)it.oy=Math.max(-1,Math.min(1,y/P.my))}
+let gt;function flashGuide(it,ms=1100){V.guide=it;clearTimeout(gt);gt=setTimeout(()=>{if(!drag||drag.mode!=='pan'){V.guide=null;draw()}},ms)}
+function drawGuide(){const it=V.guide;if(!it)return;const c=V.G.cells.find(x=>x.it===it);if(!c)return;const P=place(it,c.w,c.h,c.strip);
+  const x=V.ox+c.x*V.k,y=V.oy+c.y*V.k,w=c.w*V.k,h=c.h*V.k,canX=P.mx*V.k>.5,canY=P.my*V.k>.5,onX=canX&&Math.abs(it.ox*P.mx)<.5,onY=canY&&Math.abs(it.oy*P.my)<.5;
+  vx.save();vx.beginPath();vx.rect(x,y,w,h);vx.clip();
+  const line=(x1,y1,x2,y2,on)=>{vx.setLineDash(on?[]:[5,5]);vx.beginPath();vx.moveTo(x1,y1);vx.lineTo(x2,y2);vx.lineWidth=on?5:3;vx.strokeStyle='rgba(0,0,0,.55)';vx.stroke();vx.lineWidth=on?2:1;vx.strokeStyle=on?'#ff3b2f':'rgba(255,255,255,.7)';vx.stroke()};
+  vx.shadowColor='rgba(0,0,0,.7)';vx.shadowBlur=3;
+  if(canX)line(x+w/2,y,x+w/2,y+h,onX);if(canY)line(x,y+h/2,x+w,y+h/2,onY);
+  if(canX&&canY&&onX&&onY){vx.setLineDash([]);vx.fillStyle='#fff';vx.beginPath();vx.arc(x+w/2,y+h/2,5.5,0,7);vx.fill();vx.fillStyle='#ff3b2f';vx.beginPath();vx.arc(x+w/2,y+h/2,4,0,7);vx.fill()}
+  vx.shadowColor='transparent';
+  const q=posOf(it),parts=[];if(canX)parts.push('X '+(onX?'centre':(q.x>0?'+':'')+q.x));if(canY)parts.push('Y '+(onY?'centre':(q.y>0?'+':'')+q.y));
+  if(parts.length){const t=parts.join('  ·  ');vx.font='600 12px "IBM Plex Sans",system-ui';const tw=vx.measureText(t).width+16,bx=x+w-tw-6,by=y+h-28<y+4?y+4:y+h-28;
+    vx.fillStyle=onX||onY?'rgba(180,30,20,.92)':'rgba(0,0,0,.8)';vx.fillRect(bx,by,tw,22);vx.fillStyle='#fff';vx.textBaseline='middle';vx.fillText(t,bx+8,by+11.5)}
+  vx.restore()}
 function drawCells(ctx,G,k){
   ctx.fillStyle=S.gc;ctx.fillRect(0,0,G.W*k,G.H*k);
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
@@ -349,6 +376,7 @@ function draw(){
   vx.restore();
   if(V.hov&&!drag){const c=V.G.cells.find(x=>x.it===V.hov);if(c){const g=gripRect(c);vx.save();vx.fillStyle='rgba(0,0,0,.7)';vx.beginPath();vx.roundRect?vx.roundRect(g.x,g.y,g.w,g.h,6):vx.rect(g.x,g.y,g.w,g.h);vx.fill();
     vx.fillStyle='#fff';for(let i=0;i<3;i++)for(let j=0;j<2;j++){vx.beginPath();vx.arc(g.x+9+j*8,g.y+7+i*6,1.7,0,7);vx.fill()}vx.restore()}}
+  drawGuide();
   if(drag&&drag.mode==='row'){const G=V.G,y=V.oy+(G.rowY[drag.row]+G.rowHpx[drag.row])*V.k;vx.save();vx.strokeStyle='#e3392b';vx.lineWidth=2;vx.beginPath();vx.moveTo(V.ox,y);vx.lineTo(V.ox+G.W*V.k,y);vx.stroke();
     const t=`Row ${drag.row+1}: ${Math.round((S.rowH[drag.row]??1)*100)}% · ${G.rowHpx[drag.row]} px`;vx.font='600 12px "IBM Plex Sans",system-ui';const tw=vx.measureText(t).width+16;
     vx.fillStyle='rgba(0,0,0,.85)';vx.fillRect(V.ox+G.W*V.k/2-tw/2,y+6,tw,22);vx.fillStyle='#fff';vx.textBaseline='middle';vx.fillText(t,V.ox+G.W*V.k/2-tw/2+8,y+17.5);vx.restore()}
@@ -387,18 +415,21 @@ view.addEventListener('pointermove',e=>{
   const moved=Math.hypot(e.clientX-d.sx,e.clientY-d.sy)>4;if(!moved&&!d.mode)return;
   if(d.swap){d.mode='swap';const c=cellAt(e);d.over=c&&c.it!==d.it?c.it:null;view.style.cursor='grabbing';draw();return}
   // panning stays panning even when the mouse leaves the frame
-  d.mode='pan';d.it.ox=d.mx>2?d.ox+(e.clientX-d.sx)/d.mx:d.ox;d.it.oy=d.my>2?d.oy+(e.clientY-d.sy)/d.my:d.oy;
-  view.style.cursor='grabbing';draw();
+  d.mode='pan';let nx=d.mx>2?d.ox+(e.clientX-d.sx)/d.mx:d.ox,ny=d.my>2?d.oy+(e.clientY-d.sy)/d.my:d.oy;
+  // magnet: within 7 screen px of the centre it snaps to exactly centre (hold Alt to move freely)
+  if(!e.altKey){if(d.mx>2&&Math.abs(nx*d.mx)<7)nx=0;if(d.my>2&&Math.abs(ny*d.my)<7)ny=0}
+  d.it.ox=nx;d.it.oy=ny;V.guide=d.it;clearTimeout(gt);
+  view.style.cursor='grabbing';draw();syncPos();
 });
 view.addEventListener('pointerleave',()=>{if(!drag&&V.hov){V.hov=null;draw()}});
 function up(){if(!drag)return;const d=drag;drag=null;view.style.cursor='default';
   if(d.mode==='row'){render();return}
   if(d.over&&d.over!==d.it){const a=S.items.indexOf(d.it),b=S.items.indexOf(d.over);[S.items[a],S.items[b]]=[S.items[b],S.items[a]];render();return}
-  if(d.mode==='pan'){sizeSoon();commit()}draw()}
+  if(d.mode==='pan'){sizeSoon();commit();flashGuide(d.it,900)}draw()}
 view.addEventListener('pointerup',up);view.addEventListener('pointercancel',up);
 view.addEventListener('wheel',e=>{const c=cellAt(e);if(!c)return;e.preventDefault();
   if(c.strip&&!e.ctrlKey&&!e.metaKey){const P=place(c.it,c.w,c.h,c.strip);if(P.my>0){c.it.oy=Math.max(-1,Math.min(1,c.it.oy+(e.deltaY>0?-1:1)*Math.min(.25,12/(P.my*V.k+1))));
-    S.sel=c.it.id;renderPanel();draw();sizeSoon();clearTimeout(wt);wt=setTimeout(commit,400)}return}
+    S.sel=c.it.id;flashGuide(c.it);renderPanel();draw();sizeSoon();clearTimeout(wt);wt=setTimeout(commit,400)}return}
   c.it.zoom=Math.max(1,Math.min(5,c.it.zoom*(e.deltaY<0?1.1:1/1.1)));if(c.it.zoom<1.01)c.it.zoom=1;S.sel=c.it.id;renderPanel();draw();sizeSoon();clearTimeout(wt);wt=setTimeout(commit,400)},{passive:false});let wt;
 
 /* ---------- panel ---------- */
@@ -423,7 +454,7 @@ function renderPanel(){
     <button class="ib x" data-a="x" aria-label="Remove">×</button></div></li>`).join('');
   const it=S.items.find(i=>i.id===S.sel);$('frameCard').hidden=!it;
   if(it){const ri=Math.floor(S.items.indexOf(it)/S.c),rh=Math.round((S.rowH[ri]??1)*100);if(document.activeElement!==$('fh'))$('fh').value=rh;$('fhO').textContent=rh+'%';
-    $('fName').textContent='#'+(S.items.indexOf(it)+1)+(it.t!=null?' · at '+fmtT(it.t):'')+' · '+fmtN(it.iw)+' × '+fmtN(it.ih);$('z').value=R(it.zoom*100);$('zO').textContent=R(it.zoom*100)+'%'}
+    $('fName').textContent='#'+(S.items.indexOf(it)+1)+(it.t!=null?' · at '+fmtT(it.t):'')+' · '+fmtN(it.iw)+' × '+fmtN(it.ih);$('z').value=R(it.zoom*100);$('zO').textContent=R(it.zoom*100)+'%';syncPos()}
   $('auto').checked=S.auto;
   $('ar').value=S.ar;$('bars').checked=S.bars;$('fill').checked=S.fill;$('gap').value=S.gap;$('gO').textContent=S.gap+' px';$('gc').value=S.gc;$('outer').checked=S.outer;
   $('max').value=String(S.max);$('fmt').value=S.fmt;$('q').value=S.q;$('qO').textContent=S.q;$('qW').hidden=S.fmt!=='jpg';
@@ -434,7 +465,7 @@ $('strip').addEventListener('click',e=>{const li=e.target.closest('li');if(!li)r
   if(b){const a=b.dataset.a;if(a==='x'){S.items.splice(i,1);if(S.sel===id)S.sel=(S.items[Math.min(i,S.items.length-1)]||{}).id||null;pickDefault()}
     else{const j=a==='l'?i-1:i+1;[S.items[i],S.items[j]]=[S.items[j],S.items[i]]}}
   else S.sel=id;render()});
-$('z').addEventListener('input',e=>{const it=S.items.find(i=>i.id===S.sel);if(!it)return;it.zoom=e.target.value/100;$('zO').textContent=e.target.value+'%';draw()});
+$('z').addEventListener('input',e=>{const it=S.items.find(i=>i.id===S.sel);if(!it)return;it.zoom=e.target.value/100;$('zO').textContent=e.target.value+'%';draw();syncPos()});
 $('z').addEventListener('change',()=>{sizeSoon();commit()});
 $('zReset').onclick=()=>{const it=S.items.find(i=>i.id===S.sel);if(it){it.zoom=1;it.ox=it.oy=0;render()}};
 $('zAll').onclick=()=>{const it=S.items.find(i=>i.id===S.sel);if(!it)return;for(const o of S.items)o.zoom=it.zoom;render();say('Zoom '+R(it.zoom*100)+'% applied to all frames')};
@@ -442,6 +473,16 @@ const opt=(id,key,conv,ev='change')=>$(id).addEventListener(ev,e=>{S[key]=conv(e
 opt('ar','ar',t=>t.value);opt('bars','bars',t=>t.checked);opt('fill','fill',t=>t.checked);opt('gap','gap',t=>+t.value,'input');opt('gc','gc',t=>t.value,'input');
 opt('outer','outer',t=>t.checked);opt('max','max',t=>+t.value);opt('fmt','fmt',t=>t.value);opt('q','q',t=>+t.value);
 $('q').addEventListener('input',e=>{$('qO').textContent=e.target.value});
+
+function syncPos(){const it=S.items.find(i=>i.id===S.sel);if(!it)return;const q=posOf(it);if(!q)return;
+  for(const [a,v,m] of [['X',q.x,q.mx],['Y',q.y,q.my]]){const inp=$('p'+a);inp.disabled=m<1;$('c'+a).disabled=m<1;inp.min=-m;inp.max=m;
+    if(document.activeElement!==inp)inp.value=m<1?0:v;$('p'+a+'r').textContent=m<1?'Fits fully — nothing to move. Zoom in to move it.':`−${fmtN(m)} … +${fmtN(m)} px · 0 = centre`}
+  const cx=q.mx<1||q.x===0,cy=q.my<1||q.y===0;$('posC').textContent=cx&&cy?'● centred':cx?'centred left–right':cy?'centred top–bottom':''}
+const selIt=()=>S.items.find(i=>i.id===S.sel);
+for(const a of ['X','Y']){const inp=$('p'+a);
+  inp.addEventListener('input',()=>{const it=selIt();if(!it||inp.value===''||isNaN(+inp.value))return;a==='X'?setPos(it,+inp.value,null):setPos(it,null,+inp.value);flashGuide(it,1500);draw();syncPos()});
+  inp.addEventListener('change',()=>{const it=selIt();if(!it)return;inp.value=posOf(it)[a.toLowerCase()];sizeSoon();commit()});
+  $('c'+a).onclick=()=>{const it=selIt();if(!it)return;it[a==='X'?'ox':'oy']=0;flashGuide(it);render();syncPos()}}
 
 /* ---------- row heights ---------- */
 const selRow=()=>{const i=S.items.findIndex(x=>x.id===S.sel);return i<0?null:Math.floor(i/S.c)};
@@ -561,7 +602,12 @@ document.addEventListener('keydown',e=>{
     else if(k==='o'){e.preventDefault();pick()}
     else if(k==='c'&&!inField&&!(window.getSelection&&String(window.getSelection()))){e.preventDefault();copyGrid()}
     return}
-  if(inField||e.altKey)return;
+  if(!inField&&!e.altKey&&!m&&e.key.startsWith('Arrow')){const it=selIt();if(!it)return;e.preventDefault();const q=posOf(it),st=e.shiftKey?10:1;
+    // arrow = direction you want the picture to move
+    const dx={ArrowLeft:-st,ArrowRight:st}[e.key]||0,dy={ArrowUp:-st,ArrowDown:st}[e.key]||0;
+    let nx=q.x+dx,ny=q.y+dy;if(q.x!==0&&Math.sign(nx)!==Math.sign(q.x)&&dx)nx=0;if(q.y!==0&&Math.sign(ny)!==Math.sign(q.y)&&dy)ny=0; // stop on centre when crossing it
+    setPos(it,dx?nx:null,dy?ny:null);flashGuide(it);draw();syncPos();sizeSoon();clearTimeout(wt);wt=setTimeout(commit,400);return}
+  if(inField||(e.altKey&&!e.key.startsWith('Arrow')))return;
   if(e.key==='?'){keysOpen($('keys').hidden);return}
   if(/^[1-9]$/.test(e.key)){const o=options()[+e.key-1];if(o){S.c=o.c;S.r=o.r;render()}return}
   const i=selIdx();if(i<0)return;const n=S.items.length,it=S.items[i];
@@ -569,10 +615,12 @@ document.addEventListener('keydown',e=>{
   if(e.key==='+'||e.key==='='){it.zoom=Math.min(5,it.zoom*1.1);render();return}
   if(e.key==='-'||e.key==='_'){it.zoom=Math.max(1,it.zoom/1.1);if(it.zoom<1.01)it.zoom=1;render();return}
   if(e.key==='0'){it.zoom=1;it.ox=it.oy=0;render();return}
+  if(k==='c'){it.ox=it.oy=0;flashGuide(it);render();syncPos();return}
+  if(!e.altKey)return;
   const step={ArrowLeft:-1,ArrowRight:1,ArrowUp:-S.c,ArrowDown:S.c}[e.key];
   if(step===undefined)return;e.preventDefault();
   const j=Math.max(0,Math.min(n-1,i+step));if(j===i)return;
-  if(e.shiftKey){[S.items[i],S.items[j]]=[S.items[j],S.items[i]]}else S.sel=S.items[j].id;
+  S.sel=S.items[j].id;
   render();
 });
 const ro=new ResizeObserver(()=>{layout();draw()});ro.observe(stage);
