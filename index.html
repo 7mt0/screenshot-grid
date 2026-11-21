@@ -35,7 +35,10 @@ h1{font-size:26px;line-height:1.05;margin:0 8px 0 0;font-weight:700}
 .btn:hover{border-color:var(--ink)}.btn:disabled{opacity:.45;cursor:default}
 .btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
 .btn:focus-visible,.chip:focus-visible,.ib:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.main{display:grid;grid-template-columns:290px minmax(0,1fr) 330px;gap:12px;align-items:start}
+.main{display:grid;grid-template-columns:var(--lw,290px) 14px minmax(0,1fr) 14px var(--rw,330px);gap:0;align-items:start}
+aside.left{grid-column:1;grid-row:1}#gL{grid-column:2;grid-row:1}.stage{grid-column:3;grid-row:1}#gR{grid-column:4;grid-row:1}aside.right{grid-column:5;grid-row:1}
+@media(min-width:1181px){body.hideL .main{--lw:0px}body.hideL aside.left{display:none}body.hideR .main{--rw:0px}body.hideR aside.right{display:none}
+  body.hideL #gL .gtog,body.hideR #gR .gtog{opacity:1}body.hideL #gL,body.hideR #gR{cursor:pointer}}
 .addBig{width:100%;min-height:64px;border:2px dashed var(--acc);border-radius:14px;background:var(--soft);color:var(--ink);font:inherit;font-size:16px;font-weight:600;cursor:pointer;display:grid;place-items:center;gap:2px;padding:10px}
 .addBig:hover{background:var(--panel)}.addBig small{font-weight:400;font-size:12.5px;color:var(--mute)}
 .addBig .plus{color:var(--acc);font-size:20px;line-height:1;margin-right:6px}
@@ -54,8 +57,20 @@ h1{font-size:26px;line-height:1.05;margin:0 8px 0 0;font-weight:700}
 #msg.on{opacity:1}
 aside{display:grid;gap:12px;max-height:calc(100vh - 110px);overflow:auto;padding-bottom:2px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:12px}
-.card h3{margin:0;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.card h3 small{font-weight:400;color:var(--mute);font-size:13px}
+.card h3{margin:0;font-size:16px;display:flex;justify-content:flex-start;align-items:center;gap:8px}
+.card h3 small{font-weight:400;color:var(--mute);font-size:13px;margin-left:auto}
+.grab{width:22px;height:26px;margin:-4px -2px -4px -6px;border:0;border-radius:6px;background:none;color:var(--mute);font-size:15px;cursor:grab;touch-action:none;padding:0;flex:none}
+.grab:hover{background:var(--soft);color:var(--ink)}.grab:active{cursor:grabbing}
+.card.lift{position:fixed;z-index:60;pointer-events:none;box-shadow:0 24px 60px -18px rgba(0,0,0,.6);opacity:.96}
+.ph{border:2px dashed var(--acc);border-radius:14px;background:var(--soft);opacity:.7}
+body.moving aside{outline:2px dashed var(--line);outline-offset:4px;border-radius:14px;min-height:120px}
+body.moving,body.moving *{cursor:grabbing!important;user-select:none}
+.gut{position:relative;cursor:col-resize;touch-action:none;align-self:stretch}
+.gut::before{content:'';position:absolute;left:50%;top:6px;bottom:6px;width:3px;transform:translateX(-50%);border-radius:3px;background:transparent;transition:background .15s}
+.gut:hover::before,.gut.on::before{background:var(--acc)}
+.gtog{position:absolute;left:50%;top:calc(50vh - 80px);transform:translateX(-50%);width:20px;height:48px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer;padding:0;opacity:0;transition:opacity .15s;z-index:2}
+.gut:hover .gtog,.gtog:focus-visible{opacity:1}
+body.resizing,body.resizing *{cursor:col-resize!important;user-select:none}
 .f{display:grid;gap:4px}.f>span{font-size:14px;color:var(--mute);display:flex;justify-content:space-between}
 .f>span b{color:var(--ink);font-weight:600}
 input[type=range]{width:100%;accent-color:var(--acc);height:26px;margin:0}
@@ -103,7 +118,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 @media(max-width:700px){.stageContact{display:none}}
 [hidden]{display:none!important}
 @media(max-width:1420px){.top>p{display:none}}
-@media(max-width:1180px){.main{grid-template-columns:minmax(0,1fr) 320px}.stage{grid-column:1;grid-row:1/3}aside.left{grid-column:2;grid-row:1;max-height:none}aside.right{grid-column:2;grid-row:2;max-height:none}}
+@media(max-width:1180px){.gut{display:none}.main{grid-template-columns:minmax(0,1fr) 320px;gap:12px}.stage{grid-column:1;grid-row:1/3}aside.left{grid-column:2;grid-row:1;max-height:none}aside.right{grid-column:2;grid-row:2;max-height:none}}
 @media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.stage{grid-row:auto;height:58vh;min-height:320px}aside.left,aside.right{grid-column:1;grid-row:auto;max-height:none}}
 @media(max-width:600px){h1{font-size:22px}.top>p{width:100%;order:3}}
 </style>
@@ -111,9 +126,10 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 <body>
 <div class="wrap">
   <div class="top">
-    <h1>Screenshot Grid</h1><span class="ver" title="Version">v26 Nov · scroll zoom</span>
+    <h1>Screenshot Grid</h1><span class="ver" title="Version">v27 Nov · your layout</span>
     <p>Episode caps in a clean grid, every frame whole and sharp.</p>
     <span class="sp"></span>
+    <button class="btn" id="layReset" type="button" hidden title="Put the panels back where they started">Reset layout</button>
     <button class="btn" id="undoB" type="button" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶</button>
     <button class="btn" id="redoB" type="button" title="Redo (Ctrl+Y)" aria-label="Redo" disabled>↷</button>
     <button class="btn" id="keysBtn" type="button" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">?</button>
@@ -147,7 +163,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
       <button class="addBig" id="add" type="button"><span><span class="plus">+</span>Add screenshots</span><small>or drop them anywhere · Ctrl+V to paste</small></button>
       <section class="card" id="frameNone" hidden>Click a frame in the grid to adjust its zoom, position and row height.</section>
       <section class="card" id="frameCard" hidden>
-        <h3>Selected frame <small id="fName"></small></h3>
+        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Selected frame <small id="fName"></small></h3>
         <label class="f"><span>Zoom <b id="zO">100%</b></span><input type="range" id="z" min="100" max="500" value="100"></label>
         <div class="f"><span style="font-size:14px;color:var(--mute);display:flex;justify-content:space-between">Position in frame <b id="posC" style="color:var(--ink);font-weight:600"></b></span>
           <div class="pos">
@@ -168,6 +184,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
         </div>
       </section>
     </aside>
+    <div class="gut" id="gL" title="Drag to resize · double-click to hide"><button class="gtog" id="tL" type="button" aria-label="Hide left panel">‹</button></div>
 
     <div class="stage" id="stage">
       <canvas id="view" aria-label="Grid preview"></canvas>
@@ -186,9 +203,10 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
       <p class="stageContact">Suggestions or problems? X <a href="https://x.com/aka7mto" target="_blank" rel="noopener">@aka7mto</a> · Discord <b>7mto</b></p>
     </div>
 
+    <div class="gut" id="gR" title="Drag to resize · double-click to hide"><button class="gtog" id="tR" type="button" aria-label="Hide right panel">›</button></div>
     <aside class="right">
       <section class="card" id="layCard" hidden>
-        <h3>Layout <small>columns × rows</small></h3>
+        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Layout <small>columns × rows</small></h3>
         <div class="chips" id="chips"></div>
         <label class="f"><span>Frame shape</span>
           <select id="ar">
@@ -203,7 +221,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 
 
       <section class="card" id="listCard" hidden>
-        <h3>Frames <small id="cnt"></small></h3>
+        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Frames <small id="cnt"></small></h3>
         <div class="row">
           <button class="btn small grow" id="sortT" type="button" title="Order by the time in the episode">Sort by time</button>
           <button class="btn small grow" id="rev" type="button">Reverse order</button>
@@ -218,7 +236,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
       </section>
 
       <section class="card" id="lookCard" hidden>
-        <h3>Spacing</h3>
+        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Spacing</h3>
         <label class="f"><span>Gap between frames <b id="gO">0 px</b></span><input type="range" id="gap" min="0" max="40" value="0"></label>
         <div class="row">
           <input type="color" id="gc" value="#000000" aria-label="Gap colour">
@@ -497,6 +515,51 @@ for(const a of ['X','Y']){const inp=$('p'+a);
   inp.addEventListener('input',()=>{const it=selIt();if(!it||inp.value===''||isNaN(+inp.value))return;a==='X'?setPos(it,+inp.value,null):setPos(it,null,+inp.value);flashGuide(it,1500);draw();syncPos()});
   inp.addEventListener('change',()=>{const it=selIt();if(!it)return;inp.value=posOf(it)[a.toLowerCase()];sizeSoon();commit()});
   $('c'+a).onclick=()=>{const it=selIt();if(!it)return;it[a==='X'?'ox':'oy']=0;flashGuide(it);render();syncPos()}}
+
+/* ---------- panels: resize, hide, rearrange (saved on this device) ---------- */
+const mainEl=document.querySelector('.main'),asL=document.querySelector('aside.left'),asR=document.querySelector('aside.right');
+const PDEF={lw:290,rw:330,hl:false,hr:false,order:{left:['frameCard'],right:['layCard','listCard','lookCard']}};
+let PL=JSON.parse(JSON.stringify(PDEF));
+try{const o=JSON.parse(localStorage.getItem('grid-panels')||'null');if(o&&o.order&&o.order.left&&o.order.right)PL=Object.assign(PL,o)}catch(e){}
+const savePanels=()=>{try{localStorage.setItem('grid-panels',JSON.stringify(PL))}catch(e){}};
+function placeCards(){const all=[...PDEF.order.left,...PDEF.order.right];const seen=new Set();
+  for(const [side,as] of [['left',asL],['right',asR]])for(const id of PL.order[side]){const el=$(id);if(el&&!seen.has(id)){as.appendChild(el);seen.add(id)}}
+  for(const id of all)if(!seen.has(id)){const el=$(id);(PDEF.order.left.includes(id)?asL:asR).appendChild(el)}
+  $('frameCard').before($('frameNone'))}
+function applyPanels(){const wide=innerWidth>1180;mainEl.style.setProperty('--lw',(PL.hl&&wide?0:PL.lw)+'px');mainEl.style.setProperty('--rw',(PL.hr&&wide?0:PL.rw)+'px');
+  document.body.classList.toggle('hideL',PL.hl);document.body.classList.toggle('hideR',PL.hr);
+  $('tL').textContent=PL.hl?'›':'‹';$('tL').setAttribute('aria-label',PL.hl?'Show left panel':'Hide left panel');
+  $('tR').textContent=PL.hr?'‹':'›';$('tR').setAttribute('aria-label',PL.hr?'Show right panel':'Hide right panel');
+  $('layReset').hidden=JSON.stringify(PL)===JSON.stringify(PDEF)}
+placeCards();applyPanels();addEventListener('resize',applyPanels);
+function toggleSide(k){PL[k]=!PL[k];applyPanels();savePanels()}
+$('tL').onclick=e=>{e.stopPropagation();toggleSide('hl')};$('tR').onclick=e=>{e.stopPropagation();toggleSide('hr')};
+$('layReset').onclick=()=>{PL=JSON.parse(JSON.stringify(PDEF));placeCards();applyPanels();savePanels();say('Panels are back where they started')};
+for(const [g,left] of [[$('gL'),true],[$('gR'),false]]){
+  g.addEventListener('dblclick',e=>{if(e.target.closest('.gtog'))return;toggleSide(left?'hl':'hr')});
+  g.addEventListener('pointerdown',e=>{if(e.target.closest('.gtog')||e.button!==0)return;const k=left?'hl':'hr';
+    if(PL[k]){toggleSide(k);return}  // a hidden side's bar just brings it back
+    e.preventDefault();g.setPointerCapture(e.pointerId);g.classList.add('on');document.body.classList.add('resizing');
+    const mv=ev=>{const r=mainEl.getBoundingClientRect(),other=left?(PL.hr?0:PL.rw):(PL.hl?0:PL.lw),maxW=Math.max(220,r.width-other-28-380);
+      if(left)PL.lw=R(Math.max(220,Math.min(560,maxW,ev.clientX-r.left-7)));else PL.rw=R(Math.max(260,Math.min(600,maxW,r.right-ev.clientX-7)));applyPanels()};
+    const up=()=>{g.classList.remove('on');document.body.classList.remove('resizing');g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);g.removeEventListener('pointercancel',up);savePanels()};
+    g.addEventListener('pointermove',mv);g.addEventListener('pointerup',up);g.addEventListener('pointercancel',up)})}
+// drag a panel by its ⠿ handle into either column, any order
+document.addEventListener('pointerdown',e=>{const h=e.target.closest('.grab');if(!h||e.button!==0)return;const card=h.closest('.card');if(!card)return;
+  e.preventDefault();const r=card.getBoundingClientRect(),dx=e.clientX-r.left,dy=e.clientY-r.top;
+  const ph=document.createElement('div');ph.className='ph';ph.style.height=r.height+'px';card.before(ph);
+  Object.assign(card.style,{width:r.width+'px',left:r.left+'px',top:r.top+'px'});card.classList.add('lift');document.body.classList.add('moving');
+  const mv=ev=>{card.style.left=ev.clientX-dx+'px';card.style.top=ev.clientY-dy+'px';
+    const el=document.elementFromPoint(ev.clientX,ev.clientY),as=el&&el.closest('aside');if(!as)return;
+    const cards=[...as.querySelectorAll(':scope>.card')].filter(c=>c!==card&&!c.hidden);
+    const nxt=cards.find(c=>{const b=c.getBoundingClientRect();return ev.clientY<b.top+b.height/2});
+    if(nxt)nxt.before(ph);else as.appendChild(ph)};
+  const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);
+    ph.replaceWith(card);card.classList.remove('lift');card.style.cssText='';document.body.classList.remove('moving');$('frameCard').before($('frameNone'));
+    const ids=as=>[...as.querySelectorAll(':scope>.card')].map(c=>c.id).filter(id=>id&&id!=='frameNone');
+    PL.order={left:ids(asL),right:ids(asR)};
+    if(asL.contains(card)&&PL.hl)PL.hl=false;if(asR.contains(card)&&PL.hr)PL.hr=false;applyPanels();savePanels()};
+  document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up)});
 
 /* ---------- row heights ---------- */
 const selRow=()=>{const i=S.items.findIndex(x=>x.id===S.sel);return i<0?null:Math.floor(i/S.c)};
