@@ -88,7 +88,9 @@ input[type=color]{width:48px;height:42px;border:1px solid var(--line);border-rad
 .mini i.e{opacity:.12}
 .chip b{font-size:14px}.chip small{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
 .strip{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:6px}
-.strip li{border:1px solid var(--line);border-radius:9px;padding:4px;display:grid;gap:4px;cursor:pointer}
+.strip li{border:1px solid var(--line);border-radius:9px;padding:4px;display:grid;gap:4px;cursor:pointer;position:relative}
+.strip .cc{position:absolute;top:8px;left:8px;height:22px;padding:0 6px;border-radius:6px;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.55);color:#fff;font:700 11px/1 inherit;letter-spacing:.03em;cursor:pointer}
+.strip .cc:hover{background:rgba(0,0,0,.8)}.strip .cc.on{background:var(--acc);border-color:var(--acc)}
 .strip li.on{border-color:var(--acc);background:var(--soft)}
 .strip li.drop{outline:2px dashed var(--acc);outline-offset:2px}
 .strip li[draggable]{cursor:grab}
@@ -117,7 +119,13 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 .stageContact a,.stageContact b{color:rgba(255,255,255,.85);font-weight:600}
 @media(max-width:700px){.stageContact{display:none}}
 [hidden]{display:none!important}
-@media(max-width:1420px){.top>p{display:none}}
+.tipB{width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--soft);color:var(--mute);font:italic 700 12px/1 Georgia,serif;cursor:pointer;padding:0;flex:none}
+.tipB:hover{color:var(--ink)}.tipB[aria-expanded=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
+.moreB{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;font-weight:700}
+.moreB .chev{transition:transform .15s;color:var(--mute);font-size:13px}.moreB[aria-expanded=true] .chev{transform:rotate(180deg)}
+#moreSum{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+.tips ul{margin:0;padding-inline-start:18px;display:grid;gap:6px;font-size:14px}.tips h3{justify-content:space-between}
+@media(max-width:1500px){.top>p{display:none}}
 @media(max-width:1180px){.gut{display:none}.main{grid-template-columns:minmax(0,1fr) 320px;gap:12px}.stage{grid-column:1;grid-row:1/3}aside.left{grid-column:2;grid-row:1;max-height:none}aside.right{grid-column:2;grid-row:2;max-height:none}}
 @media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.stage{grid-row:auto;height:58vh;min-height:320px}aside.left,aside.right{grid-column:1;grid-row:auto;max-height:none}}
 @media(max-width:600px){h1{font-size:22px}.top>p{width:100%;order:3}}
@@ -126,7 +134,7 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
 <body>
 <div class="wrap">
   <div class="top">
-    <h1>Screenshot Grid</h1><span class="ver" title="Version">v28 Nov · auto subtitles</span>
+    <h1>Screenshot Grid</h1><span class="ver" title="Version">v29 Nov · pick subtitles</span>
     <p>Episode caps in a clean grid, every frame whole and sharp.</p>
     <span class="sp"></span>
     <button class="btn" id="layReset" type="button" hidden title="Put the panels back where they started">Reset layout</button>
@@ -161,23 +169,31 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
   <div class="main">
     <aside class="left">
       <button class="addBig" id="add" type="button"><span><span class="plus">+</span>Add screenshots</span><small>or drop them anywhere · Ctrl+V to paste</small></button>
+      <section class="card tips" id="tips" hidden>
+        <h3>Quick tips <button class="btn small" id="tipsOk" type="button">Got it</button></h3>
+        <ul>
+          <li>Drag a frame by its <b>⠿</b> corner handle onto another to swap them.</li>
+          <li>Scroll on a frame to zoom. Drag inside it to choose what shows.</li>
+          <li>Press <b>CC</b> on any frame to show only its subtitle, as a strip under the scene.</li>
+        </ul>
+      </section>
       <section class="card" id="frameNone" hidden>Click a frame in the grid to adjust its zoom, position and row height.</section>
       <section class="card" id="frameCard" hidden>
-        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Selected frame <small id="fName"></small></h3>
+        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Selected frame <button class="tipB" type="button" aria-expanded="false" aria-controls="frameTip" title="How it works">i</button><small id="fName"></small></h3>
         <label class="f"><span>Zoom <b id="zO">100%</b></span><input type="range" id="z" min="100" max="500" value="100"></label>
-        <div class="f"><span style="font-size:14px;color:var(--mute);display:flex;justify-content:space-between">Position in frame <b id="posC" style="color:var(--ink);font-weight:600"></b></span>
+        <div class="f" id="posBlock"><span style="font-size:14px;color:var(--mute);display:flex;justify-content:space-between">Position in frame <b id="posC" style="color:var(--ink);font-weight:600"></b></span>
           <div class="pos">
-            <b>X</b><input type="number" id="pX" step="1" inputmode="numeric" aria-label="Horizontal position, pixels from centre"><button class="ib" id="cX" type="button" title="Centre horizontally">↔ Centre</button><small id="pXr"></small>
-            <b>Y</b><input type="number" id="pY" step="1" inputmode="numeric" aria-label="Vertical position, pixels from centre"><button class="ib" id="cY" type="button" title="Centre vertically">↕ Centre</button><small id="pYr"></small>
+            <b id="bX">X</b><input type="number" id="pX" step="1" inputmode="numeric" aria-label="Horizontal position, pixels from centre"><button class="ib" id="cX" type="button" title="Centre horizontally">↔ Centre</button><small id="pXr"></small>
+            <b id="bY">Y</b><input type="number" id="pY" step="1" inputmode="numeric" aria-label="Vertical position, pixels from centre"><button class="ib" id="cY" type="button" title="Centre vertically">↕ Centre</button><small id="pYr"></small>
           </div>
         </div>
         <label class="f"><span>Height of this row <b id="fhO">100%</b></span><input type="range" id="fh" min="6" max="100" value="100"></label>
         <div class="row">
-          <button class="btn small grow" id="fhSub" type="button" title="Finds the subtitle (top or bottom) and fits this row to it. Press again to switch between top and bottom">Subtitle only</button>
+          <button class="btn small grow" id="fhSub" type="button" title="Show only this frame's subtitle, as a strip under the scene before it. Press again to switch between top and bottom">Subtitle only</button>
           <button class="btn small grow" id="fhFull" type="button">Full height</button>
         </div>
         <button class="btn small" id="repl" type="button">Replace image… <span style="font-weight:400;color:var(--mute)">(keeps this spot)</span></button>
-        <p class="hint">Drag the bottom edge of a frame to make its row shorter or taller. Drag inside a strip or zoomed frame to choose what shows. To swap two frames, drag one by its ⠿ handle in the corner onto the other. Drop a screenshot file on a frame to replace it. Scroll on any frame to zoom it. While dragging, the picture snaps to the centre and a red line shows it — hold Alt to move freely. Arrow keys nudge it 1 px (Shift+arrows: 10 px).</p>
+        <p class="hint" id="frameTip" hidden>Drag the bottom edge of a frame to make its row shorter or taller. Drag inside a strip or zoomed frame to choose what shows. To swap two frames, drag one by its ⠿ handle in the corner onto the other. Drop a screenshot file on a frame to replace it. Scroll on any frame to zoom it. While dragging, the picture snaps to the centre and a red line shows it — hold Alt to move freely. Arrow keys nudge it 1 px (Shift+arrows: 10 px).</p>
         <div class="row">
           <button class="btn small grow" id="zReset" type="button">Reset frame</button>
           <button class="btn small grow" id="zAll" type="button">Same zoom for all</button>
@@ -208,26 +224,16 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
       <section class="card" id="layCard" hidden>
         <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Layout <small>columns × rows</small></h3>
         <div class="chips" id="chips"></div>
-        <label class="f"><span>Frame shape</span>
-          <select id="ar">
-            <option value="auto">Same as the screenshots</option>
-            <option value="1.7778">16:9</option><option value="2.3333">21:9 (cinema)</option>
-            <option value="1.3333">4:3</option><option value="1">1:1</option><option value="0.5625">9:16</option>
-          </select></label>
-        <button class="btn small" id="subStack" type="button" title="First screenshot full, the rest as thin subtitle strips under it">Subtitle stack <span style="font-weight:400;color:var(--mute)">(1 full + subtitle strips)</span></button>
-        <label class="chk"><input type="checkbox" id="bars"> Remove black bars around screenshots</label>
-        <label class="chk"><input type="checkbox" id="fill"> Fill frames (crop edges if shapes differ)</label>
       </section>
 
 
       <section class="card" id="listCard" hidden>
-        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Frames <small id="cnt"></small></h3>
+        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Frames <button class="tipB" type="button" aria-expanded="false" aria-controls="sortHint" title="How sorting works">i</button><small id="cnt"></small></h3>
         <div class="row">
           <button class="btn small grow" id="sortT" type="button" title="Order by the time in the episode">Sort by time</button>
           <button class="btn small grow" id="rev" type="button">Reverse order</button>
         </div>
-        <label class="chk"><input type="checkbox" id="auto"> Put new screenshots in time order</label>
-        <p class="hint" id="sortHint">Episode numbers (S01E08, EP08, “Show - 08”) and times are read from file names like <code>…snapshot_19.33.762</code>. You can still drag frames anywhere after sorting.</p>
+        <p class="hint" id="sortHint" hidden>Episode numbers (S01E08, EP08, “Show - 08”) and times are read from file names like <code>…snapshot_19.33.762</code>. You can still drag frames anywhere after sorting.</p>
         <ul class="strip" id="strip"></ul>
         <div class="row">
           <button class="btn small grow" id="add3" type="button">Add more</button>
@@ -236,11 +242,23 @@ kbd{display:inline-block;font:600 12px/1 "IBM Plex Sans",system-ui,sans-serif;bo
       </section>
 
       <section class="card" id="lookCard" hidden>
-        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button>Spacing</h3>
+        <h3><button class="grab" type="button" title="Drag to move this panel" aria-label="Move panel">⠿</button><button class="moreB" id="moreB" type="button" aria-expanded="false" aria-controls="moreBody">More options <span class="chev">▾</span></button><small id="moreSum"></small></h3>
+        <div id="moreBody" hidden style="display:grid;gap:14px">
+        <label class="f"><span>Frame shape</span>
+          <select id="ar">
+            <option value="auto">Same as the screenshots</option>
+            <option value="1.7778">16:9</option><option value="2.3333">21:9 (cinema)</option>
+            <option value="1.3333">4:3</option><option value="1">1:1</option><option value="0.5625">9:16</option>
+          </select></label>
+        <label class="chk"><input type="checkbox" id="bars"> Remove black bars around screenshots</label>
+        <label class="chk"><input type="checkbox" id="fill"> Fill frames (crop edges if shapes differ)</label>
+        <label class="chk"><input type="checkbox" id="auto"> Put new screenshots in time order</label>
+
         <label class="f"><span>Gap between frames <b id="gO">0 px</b></span><input type="range" id="gap" min="0" max="40" value="0"></label>
         <div class="row">
           <input type="color" id="gc" value="#000000" aria-label="Gap colour">
           <label class="chk grow"><input type="checkbox" id="outer"> Border around the edge</label>
+        </div>
         </div>
       </section>
 
@@ -508,7 +526,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 function arTxt(a){const cands=[[16,9],[21,9],[4,3],[3,2],[1,1],[3,4],[2,3],[9,16]];for(const [x,y] of cands)if(Math.abs(a-x/y)<.01)return x+':'+y;return a>=1?a.toFixed(2)+':1':'1:'+(1/a).toFixed(2)}
 function renderPanel(){
   const n=S.items.length,has=n>0;
-  for(const id of ['layCard','listCard','lookCard'])$(id).hidden=!has;
+  for(const id of ['layCard','listCard','lookCard'])$(id).hidden=!has;$('tips').hidden=!has||tipsSeen;moreSum();
   $('empty').hidden=has;$('info').hidden=!has;$('save').disabled=!has;
   if(!has){$('frameCard').hidden=true;return}
   const ops=options(),car=cellAR();
@@ -519,7 +537,7 @@ function renderPanel(){
       <b>${o.c} × ${o.r}</b><small>${o.ar>=1?'wide':'tall'} ${arTxt(o.ar)}${o.empty?' · '+o.empty+' empty':''}</small></button>`}).join('');
   $('cnt').textContent=n===1?'1 screenshot':n+' screenshots';
   const epShow=new Set(S.items.map(i=>i.ep?i.ep.e+'/'+i.ep.s:'-')).size>1;
-  $('strip').innerHTML=S.items.map((it,i)=>`<li draggable="true" data-id="${it.id}" class="${it.id===S.sel?'on':''}"><img src="${it.url}" alt="">
+  $('strip').innerHTML=S.items.map((it,i)=>`<li draggable="true" data-id="${it.id}" class="${it.id===S.sel?'on':''}"><img src="${it.url}" alt=""><button class="cc${it.sub?' on':''}" data-a="s" aria-pressed="${!!it.sub}" title="${it.sub?'Showing only the subtitle. Click to show the whole frame':'Show only the subtitle of this frame, as a strip under the scene before it'}">CC</button>
     <div class="r"><span class="n" title="${esc(it.name)}">${it.t!=null?(epShow&&it.ep?'E'+it.ep.e+' · ':'')+fmtT(it.t):i+1}</span>
     <button class="ib" data-a="l" ${i===0?'disabled':''} aria-label="Move earlier">←</button>
     <button class="ib" data-a="r" ${i===n-1?'disabled':''} aria-label="Move later">→</button>
@@ -531,9 +549,10 @@ function renderPanel(){
   $('ar').value=S.ar;$('bars').checked=S.bars;$('fill').checked=S.fill;$('gap').value=S.gap;$('gO').textContent=S.gap+' px';$('gc').value=S.gc;$('outer').checked=S.outer;
   $('max').value=String(S.max);$('fmt').value=S.fmt;$('q').value=S.q;$('qO').textContent=S.q;$('qW').hidden=S.fmt!=='jpg';expLabel();
 }
-function render(){if(S.items.length&&!options().some(o=>o.c===S.c&&o.r===S.r))pickDefault();renderPanel();draw();sizeSoon();$('copyB').disabled=!S.items.length;commit()}
-$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;S.c=+b.dataset.c;S.r=+b.dataset.r;S.rowH=[];render()});
+function render(){applySubs();if(S.items.length&&!options().some(o=>o.c===S.c&&o.r===S.r))pickDefault();renderPanel();draw();sizeSoon();$('copyB').disabled=!S.items.length;commit()}
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;clearSubs();S.c=+b.dataset.c;S.r=+b.dataset.r;S.rowH=[];render()});
 $('strip').addEventListener('click',e=>{const li=e.target.closest('li');if(!li)return;const id=+li.dataset.id,i=S.items.findIndex(x=>x.id===id),b=e.target.closest('button');
+  if(b&&b.dataset.a==='s'){const it=S.items[i];S.sel=id;if(it.sub){setSub(it,false);render();say('Whole frame again')}else{const g=S.c>1,res=setSub(it,true);render();subMsg(it,res,g)}return}
   if(b){const a=b.dataset.a;if(a==='x'){S.items.splice(i,1);if(S.sel===id)S.sel=(S.items[Math.min(i,S.items.length-1)]||{}).id||null;pickDefault()}
     else{const j=a==='l'?i-1:i+1;[S.items[i],S.items[j]]=[S.items[j],S.items[i]]}}
   else S.sel=id;render()});
@@ -548,7 +567,10 @@ $('q').addEventListener('input',e=>{$('qO').textContent=e.target.value;S.q=+e.ta
 
 function syncPos(){const it=S.items.find(i=>i.id===S.sel);if(!it)return;const q=posOf(it);if(!q)return;
   for(const [a,v,m] of [['X',q.x,q.mx],['Y',q.y,q.my]]){const inp=$('p'+a);inp.disabled=m<1;$('c'+a).disabled=m<1;inp.min=-m;inp.max=m;
-    if(document.activeElement!==inp)inp.value=m<1?0:v;$('p'+a+'r').textContent=m<1?'Fits fully — nothing to move. Zoom in to move it.':`−${fmtN(m)} … +${fmtN(m)} px · 0 = centre`}
+    if(document.activeElement!==inp)inp.value=m<1?0:v;$('p'+a+'r').textContent=`−${fmtN(m)} … +${fmtN(m)} px · 0 = centre`;
+    for(const el of [$('b'+a),inp,$('c'+a),$('p'+a+'r')])el.hidden=m<1}
+  // only show what can actually move; hidden entirely while the whole picture fits
+  $('posBlock').hidden=q.mx<1&&q.my<1;$('fhSub').setAttribute('aria-pressed',!!it.sub);$('fhSub').classList.toggle('pri',!!it.sub);$('zAll').hidden=!(it.zoom>1.01);
   const cx=q.mx<1||q.x===0,cy=q.my<1||q.y===0;$('posC').textContent=cx&&cy?'● centred':cx?'centred left–right':cy?'centred top–bottom':''}
 const selIt=()=>S.items.find(i=>i.id===S.sel);
 for(const a of ['X','Y']){const inp=$('p'+a);
@@ -596,10 +618,20 @@ document.addEventListener('pointerdown',e=>{const h=e.target.closest('.grab');if
     if(nxt)nxt.before(ph);else as.appendChild(ph)};
   const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);
     ph.replaceWith(card);card.classList.remove('lift');card.style.cssText='';document.body.classList.remove('moving');$('frameCard').before($('frameNone'));
-    const ids=as=>[...as.querySelectorAll(':scope>.card')].map(c=>c.id).filter(id=>id&&id!=='frameNone');
+    const ids=as=>[...as.querySelectorAll(':scope>.card')].map(c=>c.id).filter(id=>id&&id!=='frameNone'&&id!=='tips');
     PL.order={left:ids(asL),right:ids(asR)};
     if(asL.contains(card)&&PL.hl)PL.hl=false;if(asR.contains(card)&&PL.hr)PL.hr=false;applyPanels();savePanels()};
   document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up)});
+
+/* ---------- less clutter: info buttons, "More options", one-time tips ---------- */
+for(const b of document.querySelectorAll('.tipB'))b.onclick=e=>{e.stopPropagation();const p=$(b.getAttribute('aria-controls'));p.hidden=!p.hidden;b.setAttribute('aria-expanded',!p.hidden)};
+let moreOpen=false;try{moreOpen=localStorage.getItem('grid-more')==='1'}catch(e){}
+function applyMore(){$('moreBody').hidden=!moreOpen;$('moreB').setAttribute('aria-expanded',moreOpen);moreSum()}
+function moreSum(){const bits=[];const ar=$('ar').selectedOptions[0];if($('ar').value!=='auto'&&ar)bits.push(ar.textContent);
+  if(S.gap>0)bits.push('gap '+S.gap+' px');if(S.fill)bits.push('fill');if(!S.bars)bits.push('bars kept');$('moreSum').textContent=moreOpen?'':bits.join(' · ')}
+$('moreB').onclick=()=>{moreOpen=!moreOpen;try{localStorage.setItem('grid-more',moreOpen?'1':'0')}catch(e){}applyMore()};
+let tipsSeen=false;try{tipsSeen=localStorage.getItem('grid-tips')==='1'}catch(e){}
+$('tipsOk').onclick=()=>{tipsSeen=true;try{localStorage.setItem('grid-tips','1')}catch(e){}$('tips').hidden=true};
 
 /* ---------- row heights ---------- */
 const selRow=()=>{const i=S.items.findIndex(x=>x.id===S.sel);return i<0?null:Math.floor(i/S.c)};
@@ -620,19 +652,30 @@ function fitSubtitle(r,pick){const items=rowItems(r);if(!items.length)return 'no
     if(!c||!b){it.oy=-1;continue}const P=place(it,c.w,c.h,true),s=P.dh/EH(it),mid=(it._pad[0]+it._pad[1])/2;
     it.oy=P.my>0?Math.max(-1,Math.min(1,(P.dh/2-mid*s)/P.my)):0}
   return found?(found<items.length?'some':'all'):'none'}
-$('fhSub').onclick=()=>{const r=selRow();if(r==null)return;const it=S.items.find(i=>i.id===S.sel);
-  const again=S.rowH[r]<.98&&it&&it.subI!=null&&it._lastSubRow===r;
-  if(it){const n=findSubs(it).length;it.subI=again&&n>1?(it.subI+1)%n:0;it._lastSubRow=r}
-  const res=fitSubtitle(r,it);render();
-  const b=it&&it._band;
-  say(res==='none'?"Couldn't find a subtitle, showing the bottom. Drag inside the strip to adjust":
-      b&&findSubs(it).length>1?`Subtitle at the ${b.pos}. Press again for the one at the ${b.pos==='bottom'?'top':'bottom'}`:
-      res==='some'?'Fitted the subtitles found. One frame had none, it shows its bottom':'Fitted to the subtitle')};
-$('fhFull').onclick=()=>{const r=selRow();if(r==null)return;S.rowH[r]=1;for(const it of rowItems(r))it.subI=null;render()};
-$('subStack').onclick=()=>{const n=S.items.length;if(n<2)return say('Add at least 2 screenshots');
-  S.c=1;S.r=n;S.rowH=Array.from({length:n},(_,i)=>i?.2:1);S.items.forEach((it,i)=>{if(i){it.oy=-1;it.zoom=1;it.subI=0}});
-  let miss=0;for(let r=1;r<n;r++)if(fitSubtitle(r,null)==='none')miss++;
-  render();say(miss?`${miss} strip${miss>1?'s':''} had no subtitle found, ${miss>1?'they show':'it shows'} the bottom. Drag inside to adjust`:'Each strip is fitted to its subtitle')};
+/* ---------- subtitle frames: you pick which frames show only their subtitle ----------
+   While any frame is marked, the grid is one column: each frame is its own row, scenes at full height and
+   marked frames as thin strips under the scene before them. Clearing the last mark brings the old layout back. */
+const anySub=()=>S.items.some(i=>i.sub);
+function applySubs(){if(!anySub())return;const ids=S.items.map(i=>i.id).join(',');
+  // keep heights the user dragged or slid since last time (same order only)
+  if(S._subIds===ids&&S.c===1)S.items.forEach((it,r)=>{if(S.rowH[r]!=null){if(it.sub)it.subH=S.rowH[r];else it.fullH=S.rowH[r]}});
+  S.c=1;S.r=S.items.length;S.rowH=S.items.map(it=>it.sub?(it.subH??.2):(it.fullH??1));S._subIds=ids}
+function setSub(it,on){
+  if(on&&!it.sub){if(!anySub())S.prevLay={c:S.c,r:S.r,rowH:S.rowH.slice()};it.sub=true;it.subI=0;it.subH=null;applySubs();
+    const r=S.items.indexOf(it),res=fitSubtitle(r,it);it.subH=S.rowH[r];return res}
+  if(!on&&it.sub){it.sub=false;it.subH=null;it.oy=0;it.subI=null;
+    if(!anySub()){const p=S.prevLay;S.prevLay=null;S._subIds=null;S.items.forEach(i=>i.fullH=null);
+      if(p&&options().some(o=>o.c===p.c&&o.r===p.r)){S.c=p.c;S.r=p.r;S.rowH=p.rowH}else{S.rowH=[];pickDefault()}}}}
+function clearSubs(){for(const it of S.items)if(it.sub){it.sub=false;it.subH=null;it.oy=0;it.subI=null}S.items.forEach(i=>i.fullH=null);S.prevLay=null;S._subIds=null}
+function subMsg(it,res,wasGrid){const b=it._band,n=findSubs(it).length,pre=wasGrid?'One column now, so the subtitle sits under its scene. ':'';
+  say(pre+(res==='none'?"Couldn't find a subtitle, showing the bottom. Drag inside the strip to adjust":
+    n>1?`Subtitle at the ${b.pos}. Press Subtitle only again for the one at the ${b.pos==='bottom'?'top':'bottom'}`:'Showing only its subtitle'))}
+$('fhSub').onclick=()=>{const it=selIt();if(!it)return;
+  if(it.sub){const n=findSubs(it).length;if(n<2){say('Already showing only its subtitle. Full height shows the whole frame');return}
+    it.subI=(it.subI+1)%n;const r=S.items.indexOf(it);applySubs();fitSubtitle(r,it);it.subH=S.rowH[r];render();subMsg(it,'all',false);return}
+  const g=S.c>1,res=setSub(it,true);render();subMsg(it,res,g)};
+$('fhFull').onclick=()=>{const it=selIt();if(it&&it.sub){setSub(it,false);render();say('Whole frame again');return}
+  const r=selRow();if(r==null)return;S.rowH[r]=1;for(const x of rowItems(r))x.subI=null;render()};
 
 /* ---------- time order ---------- */
 function sortByTime(){
@@ -773,6 +816,7 @@ function fitContact(){const c=document.querySelector('.stageContact');if(!c)retu
   const r=Math.max(0,...[...document.querySelectorAll('#info span')].map(e=>e.getBoundingClientRect().right));c.style.visibility=r+12>c.getBoundingClientRect().left?'hidden':''}
 const ro=new ResizeObserver(()=>{layout();draw();fitContact()});ro.observe(stage);
 
+applyMore();
 layout();render();
 (async()=>{try{if(window.claude&&typeof window.claude.use==='function')dl=await window.claude.use('downloads')}catch(e){dl=null}})();
 }
